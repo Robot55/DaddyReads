@@ -33,8 +33,6 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	void Update () {
-	//	tmpSprite.texture=Book.book.pages[pageIndex].texture;
-	//	bookContainer.sprite=tmpSprite;
 		drawSprite();
 		setRecordButtonState();
 		setPlayButtonState();
@@ -46,11 +44,11 @@ public class GUILogic : MonoBehaviour {
 	void setAttachAudioButtonState(){
 		if (tmpAudio.clip != null && !Microphone.IsRecording(null)) { //if audio cip exists AND Mic is NOT currently recording
 			//show attach button
-			attachAudioToPageButton.gameObject.SetActive(true);
+			attachAudioToPageButton.interactable=true;
 			attachAudioToPageButton.onClick.RemoveAllListeners();
 			attachAudioToPageButton.onClick.AddListener(attachCurrentRecording);
 		} else {
-			attachAudioToPageButton.gameObject.SetActive(false);
+			attachAudioToPageButton.interactable=false;
 		}
 	}
 	void setPlayButtonState(){
@@ -58,7 +56,7 @@ public class GUILogic : MonoBehaviour {
 		cb=playButton.colors;
 		    
 		if (tmpAudio.clip != null) {	// does playable clip exist already?
-			playButton.gameObject.SetActive(true);		
+			playButton.interactable=true;	
 			if (tmpAudio.isPlaying) {	// Is recording currently being played?
 				// If yes - button should be a STOP playback button
 				playButton.GetComponentInChildren<Text>().text = "Stop";
@@ -73,7 +71,7 @@ public class GUILogic : MonoBehaviour {
 
 		} else { // if no playable clip exists
 			//hide button
-			playButton.gameObject.SetActive(false);
+			playButton.interactable=false;
 		}	
 
 	}
@@ -165,6 +163,7 @@ public class GUILogic : MonoBehaviour {
 			}
 		}
 		*/
+		//PAGE AUDIO
         if (Book.book.pages[pageIndex].clip != null) {
             
 			// Is recording currently being played?		
