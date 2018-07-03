@@ -503,7 +503,12 @@ PlayerSettings:
   webGLUseEmbeddedResources: 0
   webGLUseWasm: 0
   webGLCompressionFormat: 1
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    1: USES_MEDIA_LIBRARY;USES_WEBVIEW
+    4: USES_MEDIA_LIBRARY;USES_WEBVIEW
+    7: USES_MEDIA_LIBRARY;USES_WEBVIEW
+    14: USES_MEDIA_LIBRARY;USES_WEBVIEW
+    25: USES_MEDIA_LIBRARY;USES_WEBVIEW
   platformArchitecture: {}
   scriptingBackend: {}
   incrementalIl2cppBuild: {}

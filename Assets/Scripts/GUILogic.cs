@@ -5,6 +5,10 @@ using UnityEngine.UI;
 using System;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using VoxelBusters.NativePlugins;
+
+
+
 
 public class GUILogic : MonoBehaviour {
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage;
@@ -12,10 +16,9 @@ public class GUILogic : MonoBehaviour {
 	public string bookFileName = "PlayerInfo.dat";
 	AudioSource tmpAudio ;
 	public Sprite playBtnSprite, stopBtnSprite;
-	Texture texture ;
 	Image image;
-	//SpriteRenderer spr ;
-	Sprite tmpSprite;
+
+	//Sprite tmpSprite;
 	public int pageIndex = 0;
 	public Color defCol; // doesnt need to be public once all color GUI stuff is ok
 
@@ -23,7 +26,7 @@ public class GUILogic : MonoBehaviour {
 		if (Book.book != null){
 			Debug.Log("book exists!");	
 			defCol = GUI.backgroundColor;
-			texture = Book.book.pages[pageIndex].texture;
+			//texture = Book.book.pages[pageIndex].texture;
 			tmpAudio = GetComponent<AudioSource> ();
 			//cnvsRenderer = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>().canvasRenderer	;
 			image = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
@@ -42,6 +45,20 @@ public class GUILogic : MonoBehaviour {
 		setPlayPageAudioState();
 		
 		
+	}
+
+	public void PickPhoto(){
+		// Set popover to last touch position on iOS. This has no effect on Android.
+		NPBinding.UI.SetPopoverPointAtLastTouchPosition();
+		// Pick image
+		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, 1.0f, PickImageFinished);
+	}
+
+	//Callback
+	private void PickImageFinished (ePickImageFinishReason _reason, Texture2D _image){
+		Debug.Log("Reason = " + _reason);
+		Debug.Log("Texture = " + _image);
+		Book.book.pages[pageIndex].texture = _image;
 	}
 
 	void setAttachAudioButtonState(){
@@ -136,6 +153,7 @@ public class GUILogic : MonoBehaviour {
 		}
 	}
 	void drawSprite () {
+		Sprite tmpSprite;
 		Texture2D tex=Book.book.pages [pageIndex].texture;
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 		image.sprite=tmpSprite;
@@ -143,14 +161,14 @@ public class GUILogic : MonoBehaviour {
 	public void prevPage () {
 		if (pageIndex > 0) {
 				pageIndex--;
-				texture = Book.book.pages [pageIndex].texture;
+				//texture = Book.book.pages [pageIndex].texture;
 			}
 	}
 
 	public void nextPage () {
 		if (pageIndex < Book.book.pages.Count - 1) {
 				pageIndex++;
-				texture = Book.book.pages [pageIndex].texture;
+				//texture = Book.book.pages [pageIndex].texture;
 			}
 	}
 
