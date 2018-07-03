@@ -7,14 +7,12 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
 public class GUILogic : MonoBehaviour {
-
+	public Button recAudioButton;
 	AudioSource tmpAudio ;
 	Texture texture ;
-
+	Image image;
 	SpriteRenderer spr ;
-
 	Sprite tmpSprite;
-	SpriteRenderer sr;
 	public int pageIndex = 0;
 	public Color defCol; // doesnt need to be public once all color GUI stuff is ok
 
@@ -24,9 +22,10 @@ public class GUILogic : MonoBehaviour {
 			defCol = GUI.backgroundColor;
 			texture = Book.book.pages[pageIndex].texture;
 			tmpAudio = GetComponent<AudioSource> ();
-			spr = GameObject.FindWithTag("pagePlaceHolder").GetComponent<SpriteRenderer>();
-			
+			//cnvsRenderer = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>().canvasRenderer	;
+			image = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
 			Debug.Log("===1) " + spr);
+
 		
 		} else {
 			Debug.Log("book script object doesn't exist in scene");
@@ -37,13 +36,36 @@ public class GUILogic : MonoBehaviour {
 	//	tmpSprite.texture=Book.book.pages[pageIndex].texture;
 	//	bookContainer.sprite=tmpSprite;
 		drawSprite();
+		setRecordButtonState();
+		
 		
 	}
 
+	void setRecordButtonState(){
+		ColorBlock cb;
+		cb=recAudioButton.colors;
+		if (Microphone.IsRecording (null)) { //if Mic currently IS recording
+			//button should function as "end recording button"
+			recAudioButton.GetComponentInChildren<Text>().text="End Recording";
+			recAudioButton.onClick.RemoveAllListeners();
+			recAudioButton.onClick.AddListener(recordAudioStop);
+			//set normal color to BLUE
+			cb.normalColor=Color.blue;
+		} else {
+			// button should function as "start recording"
+			recAudioButton.GetComponentInChildren<Text>().text="RECORD Audio";
+			recAudioButton.onClick.RemoveAllListeners();
+			recAudioButton.onClick.AddListener(recordAudio);
+			//set normal color to RED
+			cb.normalColor=Color.red;
+		}
+		cb.highlightedColor=cb.normalColor;
+		recAudioButton.colors=cb;
+	}
 	void drawSprite () {
 		Texture2D tex=Book.book.pages [pageIndex].texture;
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
-		spr.sprite=tmpSprite;
+		image.sprite=tmpSprite;
 	}
 	public void prevPage () {
 		if (pageIndex > 0) {
@@ -58,22 +80,33 @@ public class GUILogic : MonoBehaviour {
 				texture = Book.book.pages [pageIndex].texture;
 			}
 	}
+
+
+	public void recordAudioStop(){
+		EndRecording (tmpAudio, null);
+	}
+	public void recordAudio(){
+		tmpAudio.clip = Microphone.Start (null, false, 60, 44100);
+	}
 	void OnGUI()
 	{
 		if (Book.book == null){
 			Debug.Log("Book.book can't be found");
 			return;
 		}
+		/* 
 		if (GUI.Button (new Rect (10, 200, 50, 30), "Save")) {
 			save ();
 		}
 		if (GUI.Button (new Rect (10, 240, 50, 30), "Load")) {
 			load ();
 		}
+		*/
 
 		//Draw the main texture (book page photo)
 		//GUI.DrawTexture (new Rect ((Screen.width / 2) - 512, 80, 1024, 576), texture, ScaleMode.ScaleToFit, true, 0.0F); //TODO: fix magic numbers with relative vars
-		if (GUI.Button (new Rect ((Screen.width / 2) - 522, 368, 50, 30), "Back")) {
+		
+		/*if (GUI.Button (new Rect ((Screen.width / 2) - 522, 368, 50, 30), "Back")) {
 			if (pageIndex > 0) {
 				pageIndex--;
 				texture = Book.book.pages [pageIndex].texture;
@@ -85,6 +118,7 @@ public class GUILogic : MonoBehaviour {
 				texture = Book.book.pages [pageIndex].texture;
 			}
 		}
+		*/
         if (Book.book.pages[pageIndex].clip != null) {
             
 			// Is recording currently being played?		
@@ -106,22 +140,22 @@ public class GUILogic : MonoBehaviour {
             //=====================================================================
 
             // does playable clip exist already?
-            if (tmpAudio.clip != null) {
-			// Is recording currently being played?		
-				if (tmpAudio.isPlaying) {	
-					// If yes - make a Stop Button
-					if (GUI.Button (new Rect (10, 60, 50, 30), "Stop")) {
-						tmpAudio.Stop ();
-					} 
-				} else {
-					// If No - make Play button
-					if (GUI.Button (new Rect (10, 60, 50, 30), "Play")) {
-						if (Microphone.IsRecording (null)) {
-							EndRecording (tmpAudio, null);	
-						}
-						tmpAudio.Play ();
-					} 
-				}
+		if (tmpAudio.clip != null) {
+		// Is recording currently being played?		
+			if (tmpAudio.isPlaying) {	
+				// If yes - make a Stop Button
+				if (GUI.Button (new Rect (10, 60, 50, 30), "Stop")) {
+					tmpAudio.Stop ();
+				} 
+			} else {
+				// If No - make Play button
+				if (GUI.Button (new Rect (10, 60, 50, 30), "Play")) {
+					if (Microphone.IsRecording (null)) {
+						EndRecording (tmpAudio, null);	
+					}
+					tmpAudio.Play ();
+				} 
+			}
 		} 
 
 //=====================================================================
@@ -143,6 +177,7 @@ public class GUILogic : MonoBehaviour {
 			} 
 				
 		}
+
 
 //=====================================================================
 //=================    Save Audio Clip to Photo    ====================
