@@ -7,7 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
 public class GUILogic : MonoBehaviour {
-	public Button recAudioButton;
+	public Button recAudioButton, playButton, attachAudioToPageButton;
 	AudioSource tmpAudio ;
 	Texture texture ;
 	Image image;
@@ -37,10 +37,56 @@ public class GUILogic : MonoBehaviour {
 	//	bookContainer.sprite=tmpSprite;
 		drawSprite();
 		setRecordButtonState();
+		setPlayButtonState();
+		setAttachAudioButtonState();
 		
 		
 	}
 
+	void setAttachAudioButtonState(){
+		if (tmpAudio.clip != null && !Microphone.IsRecording(null)) { //if audio cip exists AND Mic is NOT currently recording
+			//show attach button
+			attachAudioToPageButton.gameObject.SetActive(true);
+			attachAudioToPageButton.onClick.RemoveAllListeners();
+			attachAudioToPageButton.onClick.AddListener(attachCurrentRecording);
+		} else {
+			attachAudioToPageButton.gameObject.SetActive(false);
+		}
+	}
+	void setPlayButtonState(){
+		ColorBlock cb;
+		cb=playButton.colors;
+		    
+		if (tmpAudio.clip != null) {	// does playable clip exist already?
+			playButton.gameObject.SetActive(true);		
+			if (tmpAudio.isPlaying) {	// Is recording currently being played?
+				// If yes - button should be a STOP playback button
+				playButton.GetComponentInChildren<Text>().text = "Stop";
+				playButton.onClick.RemoveAllListeners();
+				playButton.onClick.AddListener(stopPlayback);
+			} else { // If No - make Play button
+				playButton.GetComponentInChildren<Text>().text = "Play";
+				playButton.onClick.RemoveAllListeners();
+				playButton.onClick.AddListener(playPlayback);
+				
+			}
+
+		} else { // if no playable clip exists
+			//hide button
+			playButton.gameObject.SetActive(false);
+		}	
+
+	}
+	void attachCurrentRecording(){
+		AttachRecording(tmpAudio.clip, pageIndex);
+	}
+	void stopPlayback() {
+		tmpAudio.Stop();
+	}
+
+	void playPlayback() {
+		tmpAudio.Play();
+	}
 	void setRecordButtonState(){
 		ColorBlock cb;
 		cb=recAudioButton.colors;
@@ -138,7 +184,7 @@ public class GUILogic : MonoBehaviour {
             //=====================================================================
             //===============         Play / Stop Button         ==================
             //=====================================================================
-
+		/*
             // does playable clip exist already?
 		if (tmpAudio.clip != null) {
 		// Is recording currently being played?		
@@ -157,11 +203,12 @@ public class GUILogic : MonoBehaviour {
 				} 
 			}
 		} 
+		*/
 
 //=====================================================================
 //===============    Record / End Recording Button   ==================
 //=====================================================================
-
+/* 
 		// Is Currently Recording?
 		if (Microphone.IsRecording (null)) {
 			// If yes - make end recording button
@@ -177,6 +224,7 @@ public class GUILogic : MonoBehaviour {
 			} 
 				
 		}
+*/
 
 
 //=====================================================================
