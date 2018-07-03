@@ -8,6 +8,8 @@ using System.IO;
 
 public class GUILogic : MonoBehaviour {
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage;
+
+	public string bookFileName = "PlayerInfo.dat";
 	AudioSource tmpAudio ;
 	public Sprite playBtnSprite, stopBtnSprite;
 	Texture texture ;
@@ -214,7 +216,7 @@ public class GUILogic : MonoBehaviour {
 
 	public void save(){
 		BinaryFormatter bf = new BinaryFormatter ();
-		FileStream file = File.Create (Application.persistentDataPath + "/PlayerInfo.dat");
+		FileStream file = File.Create (Application.persistentDataPath + "/" + bookFileName);
 		BookData bookdata = new BookData ();
 		foreach (SinglePage page in Book.book.pages){
 			PageData data = new PageData();
@@ -232,7 +234,7 @@ public class GUILogic : MonoBehaviour {
 	}
 	public void load(){
 		BinaryFormatter bf = new BinaryFormatter ();
-		FileStream file = File.Open (Application.persistentDataPath + "/PlayerInfo.dat", FileMode.Open);
+		FileStream file = File.Open (Application.persistentDataPath + "/" +bookFileName, FileMode.Open);
 		BookData bookData = (BookData)bf.Deserialize (file);
 		Book.book.pages.Clear();
 		for (int i=0; i < bookData._book.Count; i++){
