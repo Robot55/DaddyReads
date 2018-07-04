@@ -16,20 +16,20 @@ public class GUILogic : MonoBehaviour {
 	public string bookFileName = "PlayerInfo.dat";
 	AudioSource tmpAudio ;
 	public Sprite playBtnSprite, stopBtnSprite;
-	Image image;
+	Image bookPageDisplayImage;
 
-	//Sprite tmpSprite;
 	public int pageIndex = 0;
 	public Color defCol; // doesnt need to be public once all color GUI stuff is ok
 
 	void Start () {
+		Debug.Log("<< GUILogic Start() Begun >>");
 		if (Book.book != null){
-			Debug.Log("book exists!");	
+			Debug.Log("book exists: " + Book.book);	
 			defCol = GUI.backgroundColor;
 			//texture = Book.book.pages[pageIndex].texture;
 			tmpAudio = GetComponent<AudioSource> ();
 			//cnvsRenderer = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>().canvasRenderer	;
-			image = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
+			bookPageDisplayImage = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
 
 		
 		} else {
@@ -156,7 +156,7 @@ public class GUILogic : MonoBehaviour {
 		Sprite tmpSprite;
 		Texture2D tex=Book.book.pages [pageIndex].texture;
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
-		image.sprite=tmpSprite;
+		bookPageDisplayImage.sprite=tmpSprite;
 	}
 	public void prevPage () {
 		if (pageIndex > 0) {
