@@ -14,9 +14,13 @@ public class GUILogic : MonoBehaviour {
 	//make public button vars and populate them in Inspector. used for changing functionality (addListener)
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage;
 	public string bookFileName = "PlayerInfo.dat";
+	List<string> allPlayerFiles = new List<string>();
 	AudioSource tmpAudio ;
 	public Sprite playBtnSprite, stopBtnSprite;
-	Image bookPageDisplayImage;
+	public Image bookPageDisplayImage;
+	ScreenManager mainCanvas;
+	public GameObject fileNameButtonPrefab;
+	
 
 	public int pageIndex = 0;
 
@@ -25,20 +29,42 @@ public class GUILogic : MonoBehaviour {
 		if (Book.book != null){
 			Debug.Log("book exists: " + Book.book);	
 			tmpAudio = GetComponent<AudioSource> ();
-			bookPageDisplayImage = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
+			//bookPageDisplayImage = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
+			Debug.Log("bookPageDisplayImage found: " + bookPageDisplayImage);
+			mainCanvas = GameObject.FindWithTag("mainCanvas").GetComponent<ScreenManager>();
+			Debug.Log("mainCanvas found: " + mainCanvas);
+			getBookFiles();
 		} else {
 			Debug.Log("Error: book script object doesn't exist in scene");
 		}
 	}
 
 	void Update () {
-		drawSprite();
-		setRecordButtonState();
-		setPlayButtonState();
-		setAttachAudioButtonState();
-		setPlayPageAudioState();
+		if (mainCanvas.currentScreen==mainCanvas.editorScreen && mainCanvas.currentScreen.activeInHierarchy==true){
+			//if current screen is EDITOR and is active
+			drawSprite();
+			setRecordButtonState();
+			setPlayButtonState();
+			setAttachAudioButtonState();
+			setPlayPageAudioState();
+		}
+		
 		
 	}
+
+	void getBookFiles(){
+		Debug.Log("<< GetBookFiles Started >>");
+		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
+		FileInfo[] info = dir.GetFiles("Player*.*");
+		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
+		foreach (FileInfo f in info)
+		{
+				Debug.Log("FileInfo File Name: " + f.Name);
+				allPlayerFiles.Add(f.Name);
+		}
+		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
+	}
+
 // ###### SECTION START: UPDATE FUNCTION METHODS ##########
 
 	void drawSprite () {
@@ -131,61 +157,46 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log("Texture = " + _image);
 		Book.book.pages[pageIndex].texture = _image;
 	}
-
-	
-	
 	void attachCurrentRecording(){
 		AttachRecording(tmpAudio.clip, pageIndex);
 	}
 	void stopPlayback() {
 		tmpAudio.Stop();
 	}
-
 	void playPlayback() {
 		tmpAudio.Play();
 	}
-	
-
 	void playPageAudio(){
 		Book.book.curAudio.clip = Book.book.pages[pageIndex].clip;
 		Book.book.curAudio.Play();
 	}
-
 	void stopPageAudio(){
 		Book.book.curAudio.Stop ();
 	}
-	
-	
 	public void prevPage () {
 		if (pageIndex > 0) {
 				pageIndex--;
 				//texture = Book.book.pages [pageIndex].texture;
 			}
 	}
-
 	public void nextPage () {
 		if (pageIndex < Book.book.pages.Count - 1) {
 				pageIndex++;
 				//texture = Book.book.pages [pageIndex].texture;
 			}
 	}
-
-
 	public void recordAudioStop(){
 		EndRecording (tmpAudio, null);
 	}
 	public void recordAudio(){
 		tmpAudio.clip = Microphone.Start (null, false, 60, 44100);
 	}
-	
 	void AttachRecording (AudioClip recordedClip, int i) {
 		
 		Book.book.pages [i].clip = recordedClip; // Attaches Recording to specific texture/Photo
 	}
 
 // ###### SECTION END: UI BUTTONS ONCLICK METHODS ##########
-
-
 
 // ###### SECTION START: UTILITY FUNCTIONS ##########
 	public void EndRecording (AudioSource audS, string deviceName) {
@@ -208,9 +219,6 @@ public class GUILogic : MonoBehaviour {
 		AudioClip.Destroy (recordedClip);
 		audS.clip = newClip;   
 	}
-
-	
-
 	public void seralizeAudio (AudioClip recordedClip, out float[] soundData, out string clipName, out int samples, out int channels, out int freq){
 		soundData = new float[recordedClip.samples * recordedClip.channels];
 		recordedClip.GetData (soundData, 0);
@@ -219,24 +227,20 @@ public class GUILogic : MonoBehaviour {
 		samples = recordedClip.samples;
 		freq = recordedClip.frequency;
 	}
-
 	public AudioClip deseralizeAudio (float[] soundData, string clipName, int samples, int channels, int freq){
 		AudioClip clip = AudioClip.Create (clipName, samples, channels, freq, false);
 		clip.SetData (soundData, 0);
 		return clip;
 	}
-
 	public byte[] serializePhoto (Texture2D myTexture){
 		byte[] bytes = myTexture.EncodeToPNG ();
 		return bytes;
 	}
-
 	public Texture2D deserializePhoto (byte[] bytes){
 		var texture = new Texture2D(1,1);
 		texture.LoadImage(bytes);
 		return texture;
 	}
-
 	public void save(){
 		Debug.Log("<< Save Method Began >>");
 		BinaryFormatter bf = new BinaryFormatter ();
@@ -277,7 +281,6 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log ("## Load Method completed ##");
 	}
 }
-
 
 // ###### SECTION END: UTILITY FUNCTIONS ##########
 
