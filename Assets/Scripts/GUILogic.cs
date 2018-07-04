@@ -11,29 +11,23 @@ using VoxelBusters.NativePlugins;
 
 
 public class GUILogic : MonoBehaviour {
+	//make public button vars and populate them in Inspector. used for changing functionality (addListener)
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage;
-
 	public string bookFileName = "PlayerInfo.dat";
 	AudioSource tmpAudio ;
 	public Sprite playBtnSprite, stopBtnSprite;
 	Image bookPageDisplayImage;
 
 	public int pageIndex = 0;
-	public Color defCol; // doesnt need to be public once all color GUI stuff is ok
 
 	void Start () {
 		Debug.Log("<< GUILogic Start() Begun >>");
 		if (Book.book != null){
 			Debug.Log("book exists: " + Book.book);	
-			defCol = GUI.backgroundColor;
-			//texture = Book.book.pages[pageIndex].texture;
 			tmpAudio = GetComponent<AudioSource> ();
-			//cnvsRenderer = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>().canvasRenderer	;
 			bookPageDisplayImage = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
-
-		
 		} else {
-			Debug.Log("book script object doesn't exist in scene");
+			Debug.Log("Error: book script object doesn't exist in scene");
 		}
 	}
 
@@ -44,67 +38,16 @@ public class GUILogic : MonoBehaviour {
 		setAttachAudioButtonState();
 		setPlayPageAudioState();
 		
-		
+	}
+// ###### SECTION START: UPDATE FUNCTION METHODS ##########
+
+	void drawSprite () {
+		Sprite tmpSprite;
+		Texture2D tex=Book.book.pages [pageIndex].texture;
+		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+		bookPageDisplayImage.sprite=tmpSprite;
 	}
 
-	public void PickPhoto(){
-		// Set popover to last touch position on iOS. This has no effect on Android.
-		NPBinding.UI.SetPopoverPointAtLastTouchPosition();
-		// Pick image
-		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, 1.0f, PickImageFinished);
-	}
-
-	//Callback
-	private void PickImageFinished (ePickImageFinishReason _reason, Texture2D _image){
-		Debug.Log("Reason = " + _reason);
-		Debug.Log("Texture = " + _image);
-		Book.book.pages[pageIndex].texture = _image;
-	}
-
-	void setAttachAudioButtonState(){
-		if (tmpAudio.clip != null && !Microphone.IsRecording(null)) { //if audio cip exists AND Mic is NOT currently recording
-			//show attach button
-			attachAudioToPageButton.interactable=true;
-			attachAudioToPageButton.onClick.RemoveAllListeners();
-			attachAudioToPageButton.onClick.AddListener(attachCurrentRecording);
-		} else {
-			attachAudioToPageButton.interactable=false;
-		}
-	}
-	void setPlayButtonState(){
-		ColorBlock cb;
-		cb=playButton.colors;
-		    
-		if (tmpAudio.clip != null) {	// does playable clip exist already?
-			playButton.interactable=true;	
-			if (tmpAudio.isPlaying) {	// Is recording currently being played?
-				// If yes - button should be a STOP playback button
-				playButton.GetComponentInChildren<Text>().text = "Stop";
-				playButton.onClick.RemoveAllListeners();
-				playButton.onClick.AddListener(stopPlayback);
-			} else { // If No - make Play button
-				playButton.GetComponentInChildren<Text>().text = "Play";
-				playButton.onClick.RemoveAllListeners();
-				playButton.onClick.AddListener(playPlayback);
-				
-			}
-
-		} else { // if no playable clip exists
-			//hide button
-			playButton.interactable=false;
-		}	
-
-	}
-	void attachCurrentRecording(){
-		AttachRecording(tmpAudio.clip, pageIndex);
-	}
-	void stopPlayback() {
-		tmpAudio.Stop();
-	}
-
-	void playPlayback() {
-		tmpAudio.Play();
-	}
 	void setRecordButtonState(){
 		ColorBlock cb;
 		cb=recAudioButton.colors;
@@ -126,15 +69,35 @@ public class GUILogic : MonoBehaviour {
 		cb.highlightedColor=cb.normalColor;
 		recAudioButton.colors=cb;
 	}
-
-	void playPageAudio(){
-		Book.book.curAudio.clip = Book.book.pages[pageIndex].clip;
-		Book.book.curAudio.Play();
+	void setPlayButtonState(){
+		if (tmpAudio.clip != null) {	// does playable clip exist already?
+			playButton.interactable=true;	
+			if (tmpAudio.isPlaying) {	// Is recording currently being played?
+				// If yes - button should be a STOP playback button
+				playButton.GetComponentInChildren<Text>().text = "Stop";
+				playButton.onClick.RemoveAllListeners();
+				playButton.onClick.AddListener(stopPlayback);
+			} else { // If No - make Play button
+				playButton.GetComponentInChildren<Text>().text = "Play";
+				playButton.onClick.RemoveAllListeners();
+				playButton.onClick.AddListener(playPlayback);
+			}
+		} else { // if no playable clip exists
+			//hide button
+			playButton.interactable=false;
+		}	
+	}
+	void setAttachAudioButtonState(){
+		if (tmpAudio.clip != null && !Microphone.IsRecording(null)) { //if audio cip exists AND Mic is NOT currently recording
+			//show attach button
+			attachAudioToPageButton.interactable=true;
+			attachAudioToPageButton.onClick.RemoveAllListeners();
+			attachAudioToPageButton.onClick.AddListener(attachCurrentRecording);
+		} else {
+			attachAudioToPageButton.interactable=false;
+		}
 	}
 
-	void stopPageAudio(){
-		Book.book.curAudio.Stop ();
-	}
 	void setPlayPageAudioState (){
 		if (Book.book.pages[pageIndex].clip != null){
 			playButtonOnImage.gameObject.SetActive(true);
@@ -152,12 +115,47 @@ public class GUILogic : MonoBehaviour {
 			playButtonOnImage.gameObject.SetActive(false);
 		}
 	}
-	void drawSprite () {
-		Sprite tmpSprite;
-		Texture2D tex=Book.book.pages [pageIndex].texture;
-		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
-		bookPageDisplayImage.sprite=tmpSprite;
+// ###### SECTION END: UPDATE FUNCTION METHODS ##########
+
+// ###### SECTION START: UI BUTTONS ONCLICK METHODS ##########
+	public void PickPhoto(){
+		// Set popover to last touch position on iOS. This has no effect on Android.
+		NPBinding.UI.SetPopoverPointAtLastTouchPosition();
+		// Pick image
+		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, 1.0f, PickImageFinished);
 	}
+
+	//Callback
+	private void PickImageFinished (ePickImageFinishReason _reason, Texture2D _image){
+		Debug.Log("Reason = " + _reason);
+		Debug.Log("Texture = " + _image);
+		Book.book.pages[pageIndex].texture = _image;
+	}
+
+	
+	
+	void attachCurrentRecording(){
+		AttachRecording(tmpAudio.clip, pageIndex);
+	}
+	void stopPlayback() {
+		tmpAudio.Stop();
+	}
+
+	void playPlayback() {
+		tmpAudio.Play();
+	}
+	
+
+	void playPageAudio(){
+		Book.book.curAudio.clip = Book.book.pages[pageIndex].clip;
+		Book.book.curAudio.Play();
+	}
+
+	void stopPageAudio(){
+		Book.book.curAudio.Stop ();
+	}
+	
+	
 	public void prevPage () {
 		if (pageIndex > 0) {
 				pageIndex--;
@@ -180,6 +178,16 @@ public class GUILogic : MonoBehaviour {
 		tmpAudio.clip = Microphone.Start (null, false, 60, 44100);
 	}
 	
+	void AttachRecording (AudioClip recordedClip, int i) {
+		
+		Book.book.pages [i].clip = recordedClip; // Attaches Recording to specific texture/Photo
+	}
+
+// ###### SECTION END: UI BUTTONS ONCLICK METHODS ##########
+
+
+
+// ###### SECTION START: UTILITY FUNCTIONS ##########
 	public void EndRecording (AudioSource audS, string deviceName) {
 		//Capture the current clip data
 		AudioClip recordedClip = audS.clip;
@@ -201,10 +209,7 @@ public class GUILogic : MonoBehaviour {
 		audS.clip = newClip;   
 	}
 
-	void AttachRecording (AudioClip recordedClip, int i) {
-		
-		Book.book.pages [i].clip = recordedClip; // Attaches Recording to specific texture/Photo
-	}
+	
 
 	public void seralizeAudio (AudioClip recordedClip, out float[] soundData, out string clipName, out int samples, out int channels, out int freq){
 		soundData = new float[recordedClip.samples * recordedClip.channels];
@@ -233,6 +238,7 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	public void save(){
+		Debug.Log("<< Save Method Began >>");
 		BinaryFormatter bf = new BinaryFormatter ();
 		FileStream file = File.Create (Application.persistentDataPath + "/" + bookFileName);
 		BookData bookdata = new BookData ();
@@ -241,16 +247,19 @@ public class GUILogic : MonoBehaviour {
 			// check if audio.clip exist
 			if (page.clip != null) {
 				seralizeAudio (page.clip, out data.soundData, out data.clipName, out data.samples, out data.channels, out data.freq);
+				Debug.Log ("Serialized AudioClip");
 			} else {
-				Debug.Log ("AudioClip doesn't exist. Probably not recorded by user");
+				Debug.Log ("No AudioClip for this page. Probably not recorded by user");
 			}
 			data.photoData = page.texture.EncodeToPNG() ;
 			bookdata._book.Add(data);
 		}
 		bf.Serialize (file, bookdata);
 		file.Close ();
+		Debug.Log ("## Save Method completed ##");
 	}
 	public void load(){
+		Debug.Log("<< Load Method Began >>");
 		BinaryFormatter bf = new BinaryFormatter ();
 		FileStream file = File.Open (Application.persistentDataPath + "/" +bookFileName, FileMode.Open);
 		BookData bookData = (BookData)bf.Deserialize (file);
@@ -265,8 +274,14 @@ public class GUILogic : MonoBehaviour {
 			Book.book.pages.Add (newPage);
 		}
 		file.Close ();
+		Debug.Log ("## Load Method completed ##");
 	}
 }
+
+
+// ###### SECTION END: UTILITY FUNCTIONS ##########
+
+// ###### SECTION START: PAGE & BOOK DATA Classes ##########
 
 [Serializable]
 class PageData {
