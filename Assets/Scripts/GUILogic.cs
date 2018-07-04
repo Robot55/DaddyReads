@@ -13,13 +13,13 @@ using VoxelBusters.NativePlugins;
 public class GUILogic : MonoBehaviour {
 	//make public button vars and populate them in Inspector. used for changing functionality (addListener)
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage;
-	public string bookFileName = "PlayerInfo.dat";
+	public string currentBookFileName = "PlayerInfo.dat";
 	List<string> allPlayerFiles = new List<string>();
 	AudioSource tmpAudio ;
 	public Sprite playBtnSprite, stopBtnSprite;
 	public Image bookPageDisplayImage;
-	ScreenManager mainCanvas;
-	public GameObject fileNameButtonPrefab;
+	myScreenManager mainCanvas;
+	public GameObject fileNameButtonPrefab, fileListContainer;
 	
 
 	public int pageIndex = 0;
@@ -31,9 +31,10 @@ public class GUILogic : MonoBehaviour {
 			tmpAudio = GetComponent<AudioSource> ();
 			//bookPageDisplayImage = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
 			Debug.Log("bookPageDisplayImage found: " + bookPageDisplayImage);
-			mainCanvas = GameObject.FindWithTag("mainCanvas").GetComponent<ScreenManager>();
+			mainCanvas = GameObject.FindWithTag("mainCanvas").GetComponent<myScreenManager>();
 			Debug.Log("mainCanvas found: " + mainCanvas);
 			getBookFiles();
+			createBookButtonList();
 		} else {
 			Debug.Log("Error: book script object doesn't exist in scene");
 		}
@@ -52,19 +53,7 @@ public class GUILogic : MonoBehaviour {
 		
 	}
 
-	void getBookFiles(){
-		Debug.Log("<< GetBookFiles Started >>");
-		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
-		FileInfo[] info = dir.GetFiles("Player*.*");
-		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
-		foreach (FileInfo f in info)
-		{
-				Debug.Log("FileInfo File Name: " + f.Name);
-				allPlayerFiles.Add(f.Name);
-		}
-		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
-	}
-
+	
 // ###### SECTION START: UPDATE FUNCTION METHODS ##########
 
 	void drawSprite () {
@@ -196,6 +185,36 @@ public class GUILogic : MonoBehaviour {
 		Book.book.pages [i].clip = recordedClip; // Attaches Recording to specific texture/Photo
 	}
 
+	
+
+	void createBookButtonList (){
+		if (allPlayerFiles.Count==0) {
+			Debug.Log("no saved files. count is zero");
+			return;
+		}
+		foreach (string _name in allPlayerFiles)
+		{	
+			GameObject go;
+			go = Instantiate (fileNameButtonPrefab, fileListContainer.transform.position, fileListContainer.transform.rotation, fileListContainer.transform);
+			go.GetComponentInChildren<Text>().text = _name;
+			go.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
+			
+		}
+	}
+
+
+
+	void loadAndEditBook (GameObject go) { //for onClick button
+			Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+			//set global filename for load/save
+			currentBookFileName = go.GetComponentInChildren<Text>().text;
+			//call load()
+			load();
+			//tell ui to change into editor mode
+			mainCanvas.changeScreen(mainCanvas.editorScreen);
+	}
+
+
 // ###### SECTION END: UI BUTTONS ONCLICK METHODS ##########
 
 // ###### SECTION START: UTILITY FUNCTIONS ##########
@@ -244,7 +263,7 @@ public class GUILogic : MonoBehaviour {
 	public void save(){
 		Debug.Log("<< Save Method Began >>");
 		BinaryFormatter bf = new BinaryFormatter ();
-		FileStream file = File.Create (Application.persistentDataPath + "/" + bookFileName);
+		FileStream file = File.Create (Application.persistentDataPath + "/" + currentBookFileName);
 		BookData bookdata = new BookData ();
 		foreach (SinglePage page in Book.book.pages){
 			PageData data = new PageData();
@@ -265,7 +284,7 @@ public class GUILogic : MonoBehaviour {
 	public void load(){
 		Debug.Log("<< Load Method Began >>");
 		BinaryFormatter bf = new BinaryFormatter ();
-		FileStream file = File.Open (Application.persistentDataPath + "/" +bookFileName, FileMode.Open);
+		FileStream file = File.Open (Application.persistentDataPath + "/" +currentBookFileName, FileMode.Open);
 		BookData bookData = (BookData)bf.Deserialize (file);
 		Book.book.pages.Clear();
 		for (int i=0; i < bookData._book.Count; i++){
@@ -280,9 +299,22 @@ public class GUILogic : MonoBehaviour {
 		file.Close ();
 		Debug.Log ("## Load Method completed ##");
 	}
+	void getBookFiles(){
+		Debug.Log("<< GetBookFiles Started >>");
+		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
+		FileInfo[] info = dir.GetFiles("Player*.*");
+		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
+		foreach (FileInfo f in info)
+		{
+				Debug.Log("FileInfo File Full Name: " + f.FullName);
+				Debug.Log("FileInfo File Name: " + f.Name);
+				allPlayerFiles.Add(f.Name);
+		}
+		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
+	}
+// ###### SECTION END: UTILITY FUNCTIONS ##########
 }
 
-// ###### SECTION END: UTILITY FUNCTIONS ##########
 
 // ###### SECTION START: PAGE & BOOK DATA Classes ##########
 
