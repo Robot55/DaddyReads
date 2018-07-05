@@ -312,17 +312,29 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log("<< GetBookFiles Started >>");
 		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
 		FileInfo[] info = dir.GetFiles("Player*.*");
-		Debug.Log("FileInfo: "+ info.Length.ToString());
-		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
+		Debug.Log("FileInfo Count: "+ info.Length.ToString());
+		if (info.Length==0){
+			Debug.Log("no saved files in user device. saving demo Book now");
+			currentBookFileName = "PlayerInfo00.dat";
+			save();
+			info = dir.GetFiles("Player*.*");
+			Debug.Log("FileInfo Count: "+ info.Length.ToString());
+		}
+		Debug.Log("Player Saved File List Count at beginning: " + allPlayerFiles.Count);
 		//clean the allPlayerFiles list so func can be used multiple time at runtime
 		allPlayerFiles.Clear();
+		Debug.Log("Player Saved File List Count after cleaning (should be 0): " + allPlayerFiles.Count);
 		foreach (FileInfo f in info)
 		{
 				Debug.Log("FileInfo File Full Name: " + f.FullName);
 				Debug.Log("FileInfo File Name: " + f.Name);
 				allPlayerFiles.Add(f.Name);
 		}
-		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
+		Debug.Log("Player Saved File List Count after populating: " + allPlayerFiles.Count);
+	}
+	void createDemoBookAndSave (){
+		currentBookFileName = "PlayerInfo00.dat";
+		save();
 	}
 // ###### SECTION END: UTILITY FUNCTIONS ##########
 }
