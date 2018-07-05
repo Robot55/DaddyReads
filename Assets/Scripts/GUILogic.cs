@@ -16,12 +16,11 @@ public class GUILogic : MonoBehaviour {
 	public string currentBookFileName = "PlayerInfo.dat";
 	List<string> allPlayerFiles = new List<string>();
 	AudioSource tmpAudio ;
-
 	public Book screenBook;
 	public Sprite playBtnSprite, stopBtnSprite;
 	public Image bookPageDisplayImage;
-	myScreenManager mainCanvas;
-	public GameObject fileNameButtonPrefab, fileListContainer;
+	public ScreenManager mainCanvas;
+	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab;
 	public int pageIndex = 0;
 
 	void Start () {
@@ -31,7 +30,7 @@ public class GUILogic : MonoBehaviour {
 			tmpAudio =  tmpAudio==null ? GetComponent<AudioSource> () : tmpAudio;
 			//bookPageDisplayImage = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
 			//Debug.Log("bookPageDisplayImage found: " + bookPageDisplayImage);
-			mainCanvas = mainCanvas==null ? GameObject.FindWithTag("mainCanvas").GetComponent<myScreenManager>() : mainCanvas;
+			mainCanvas = mainCanvas==null ? GameObject.FindWithTag("mainCanvas").GetComponent<ScreenManager>() : mainCanvas;
 			Debug.Log("mainCanvas found: " + mainCanvas + " | " + mainCanvas.gameObject.name);
 			Debug.Log("mainCanvas found: " + mainCanvas);
 			getBookFiles();
@@ -335,6 +334,11 @@ public class GUILogic : MonoBehaviour {
 	void createDemoBookAndSave (){
 		currentBookFileName = "PlayerInfo00.dat";
 		save();
+	}
+	void createNewBookAndSave(){
+		// currentBook should be newBookPrefab
+		// set filename to FileInfo.count+1
+		// save
 	}
 // ###### SECTION END: UTILITY FUNCTIONS ##########
 }

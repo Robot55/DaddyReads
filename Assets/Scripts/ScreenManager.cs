@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class myScreenManager : MonoBehaviour {
+public class ScreenManager : MonoBehaviour {
 	public GameObject homeScreen, editorScreen, playerScreen;
 	public GameObject currentScreen;
 	public GameObject guiLogic;
