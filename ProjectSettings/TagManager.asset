@@ -9,6 +9,7 @@ TagManager:
   - pagePlaceHolder
   - mainCanvas
   - fileBookContainer
+  - DemoBook
   layers:
   - Default
   - TransparentFX

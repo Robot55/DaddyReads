@@ -312,6 +312,7 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log("<< GetBookFiles Started >>");
 		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
 		FileInfo[] info = dir.GetFiles("Player*.*");
+		Debug.Log("FileInfo: "+ info.Length.ToString());
 		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
 		//clean the allPlayerFiles list so func can be used multiple time at runtime
 		allPlayerFiles.Clear();

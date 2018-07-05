@@ -11,12 +11,13 @@ public class SinglePage{
 
 public class Book : MonoBehaviour {
 
-	public static Book book;
+	//public static Book book;
     public AudioSource curAudio;
 	public List<SinglePage> pages = new List<SinglePage>();
     
 
 	// Use this for initialization
+	/*
 	void Awake () {
 
 		if (book == null) {
@@ -28,8 +29,9 @@ public class Book : MonoBehaviour {
 			Destroy (gameObject);
 		}
 	}
+	*/
 
-	void Start () {
+	void Awake () {
         curAudio = GetComponent<AudioSource>();
 	}
 
