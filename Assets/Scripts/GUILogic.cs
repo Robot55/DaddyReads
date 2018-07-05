@@ -22,6 +22,7 @@ public class GUILogic : MonoBehaviour {
 	public ScreenManager mainCanvas;
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab;
 	public int pageIndex = 0;
+	public int bookCount;
 
 	void Start () {
 		Debug.Log("<< GUILogic Start() Begun >>");
@@ -282,11 +283,12 @@ public class GUILogic : MonoBehaviour {
 			} else {
 				Debug.Log ("No AudioClip for this page. Probably not recorded by user");
 			}
-			data.photoData = page.texture.EncodeToPNG() ;
+			data.photoData = page.texture.EncodeToPNG();
 			bookdata._book.Add(data);
 		}
 		bf.Serialize (file, bookdata);
 		file.Close ();
+		Debug.Log ("file saved: " + currentBookFileName);
 		Debug.Log ("## Save Method completed ##");
 	}
 	public void load(){
@@ -335,10 +337,14 @@ public class GUILogic : MonoBehaviour {
 		currentBookFileName = "PlayerInfo00.dat";
 		save();
 	}
-	void createNewBookAndSave(){
+	public void createNewBookAndSave(){
 		// currentBook should be newBookPrefab
+		screenBook = newBookPrefab.GetComponent<Book>()!=null ? newBookPrefab.GetComponent<Book>() : screenBook;
 		// set filename to FileInfo.count+1
+		currentBookFileName = "PlayerInfo"+allPlayerFiles.Count.ToString("000")+".dat";
 		// save
+		save();
+		mainCanvas.changeScreen(mainCanvas.editorScreen);
 	}
 // ###### SECTION END: UTILITY FUNCTIONS ##########
 }
