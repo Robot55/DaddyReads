@@ -5,9 +5,11 @@ using UnityEngine;
 public class myScreenManager : MonoBehaviour {
 	public GameObject homeScreen, editorScreen, playerScreen;
 	public GameObject currentScreen;
+	public GameObject guiLogic;
 	// Use this for initialization
 	void Start () {
 		Debug.Log ("<< SCREEN MGR Started >>");
+		guiLogic = GameObject.FindWithTag("MainCamera");
 		initScreenUI();
 		
 	}
@@ -35,5 +37,13 @@ public class myScreenManager : MonoBehaviour {
 		screen.SetActive(true);
 		currentScreen=screen;
 		Debug.Log("new Current screen is: " + currentScreen + ". isActive: " +currentScreen.activeInHierarchy);
+	}
+
+	public void fromEditorToHome (){
+		// verify saved changes or autosave will go here
+		// change to homeScreen
+		changeScreen(homeScreen);
+		Debug.Log("guiLogic.gameObject is: "+ guiLogic.gameObject.name);
+		guiLogic.gameObject.SendMessage("Start");
 	}
 }

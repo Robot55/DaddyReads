@@ -16,27 +16,31 @@ public class GUILogic : MonoBehaviour {
 	public string currentBookFileName = "PlayerInfo.dat";
 	List<string> allPlayerFiles = new List<string>();
 	AudioSource tmpAudio ;
+
+	public Book screenBook;
 	public Sprite playBtnSprite, stopBtnSprite;
 	public Image bookPageDisplayImage;
 	myScreenManager mainCanvas;
 	public GameObject fileNameButtonPrefab, fileListContainer;
-	
-
 	public int pageIndex = 0;
 
 	void Start () {
 		Debug.Log("<< GUILogic Start() Begun >>");
-		if (Book.book != null){
-			Debug.Log("book exists: " + Book.book);	
-			tmpAudio = GetComponent<AudioSource> ();
+		if (screenBook != null){
+			Debug.Log("book exists: " + screenBook);	
+			tmpAudio =  tmpAudio==null ? GetComponent<AudioSource> () : tmpAudio;
 			//bookPageDisplayImage = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
-			Debug.Log("bookPageDisplayImage found: " + bookPageDisplayImage);
-			mainCanvas = GameObject.FindWithTag("mainCanvas").GetComponent<myScreenManager>();
+			//Debug.Log("bookPageDisplayImage found: " + bookPageDisplayImage);
+			mainCanvas = mainCanvas==null ? GameObject.FindWithTag("mainCanvas").GetComponent<myScreenManager>() : mainCanvas;
+			Debug.Log("mainCanvas found: " + mainCanvas + " | " + mainCanvas.gameObject.name);
 			Debug.Log("mainCanvas found: " + mainCanvas);
 			getBookFiles();
 			createBookButtonList();
-		} else {
-			Debug.Log("Error: book script object doesn't exist in scene");
+		} else { // if screenBook = null
+			Debug.Log("screenBook=null trying to fetch");
+			screenBook = GameObject.FindWithTag("BOOK").GetComponent<Book>();
+			Debug.Log(screenBook!=null ? "book script found: "+ screenBook.gameObject.name : "Error: main Book script can't be found");
+			if (screenBook!=null) Start();
 		}
 	}
 
@@ -58,7 +62,7 @@ public class GUILogic : MonoBehaviour {
 
 	void drawSprite () {
 		Sprite tmpSprite;
-		Texture2D tex=Book.book.pages [pageIndex].texture;
+		Texture2D tex=screenBook.pages [pageIndex].texture;
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 		bookPageDisplayImage.sprite=tmpSprite;
 	}
@@ -114,9 +118,9 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	void setPlayPageAudioState (){
-		if (Book.book.pages[pageIndex].clip != null){
+		if (screenBook.pages[pageIndex].clip != null){
 			playButtonOnImage.gameObject.SetActive(true);
-			if (Book.book.curAudio.isPlaying) {	
+			if (screenBook.curAudio.isPlaying) {	
 				// If yes - make a Stop Button
 				playButtonOnImage.image.sprite=stopBtnSprite;	
 				playButtonOnImage.onClick.RemoveAllListeners();
@@ -144,7 +148,7 @@ public class GUILogic : MonoBehaviour {
 	private void PickImageFinished (ePickImageFinishReason _reason, Texture2D _image){
 		Debug.Log("Reason = " + _reason);
 		Debug.Log("Texture = " + _image);
-		Book.book.pages[pageIndex].texture = _image;
+		screenBook.pages[pageIndex].texture = _image;
 	}
 	void attachCurrentRecording(){
 		AttachRecording(tmpAudio.clip, pageIndex);
@@ -156,22 +160,22 @@ public class GUILogic : MonoBehaviour {
 		tmpAudio.Play();
 	}
 	void playPageAudio(){
-		Book.book.curAudio.clip = Book.book.pages[pageIndex].clip;
-		Book.book.curAudio.Play();
+		screenBook.curAudio.clip = screenBook.pages[pageIndex].clip;
+		screenBook.curAudio.Play();
 	}
 	void stopPageAudio(){
-		Book.book.curAudio.Stop ();
+		screenBook.curAudio.Stop ();
 	}
 	public void prevPage () {
 		if (pageIndex > 0) {
 				pageIndex--;
-				//texture = Book.book.pages [pageIndex].texture;
+				//texture = screenBook.pages [pageIndex].texture;
 			}
 	}
 	public void nextPage () {
-		if (pageIndex < Book.book.pages.Count - 1) {
+		if (pageIndex < screenBook.pages.Count - 1) {
 				pageIndex++;
-				//texture = Book.book.pages [pageIndex].texture;
+				//texture = screenBook.pages [pageIndex].texture;
 			}
 	}
 	public void recordAudioStop(){
@@ -182,7 +186,7 @@ public class GUILogic : MonoBehaviour {
 	}
 	void AttachRecording (AudioClip recordedClip, int i) {
 		
-		Book.book.pages [i].clip = recordedClip; // Attaches Recording to specific texture/Photo
+		screenBook.pages [i].clip = recordedClip; // Attaches Recording to specific texture/Photo
 	}
 
 	
@@ -191,6 +195,11 @@ public class GUILogic : MonoBehaviour {
 		if (allPlayerFiles.Count==0) {
 			Debug.Log("no saved files. count is zero");
 			return;
+		}
+		//delete all buttons (so you can "redraw" this every time w/o multiple buttons)
+		foreach(Transform transform in fileListContainer.gameObject.transform)
+		{
+			Destroy(transform.gameObject);
 		}
 		foreach (string _name in allPlayerFiles)
 		{	
@@ -265,7 +274,7 @@ public class GUILogic : MonoBehaviour {
 		BinaryFormatter bf = new BinaryFormatter ();
 		FileStream file = File.Create (Application.persistentDataPath + "/" + currentBookFileName);
 		BookData bookdata = new BookData ();
-		foreach (SinglePage page in Book.book.pages){
+		foreach (SinglePage page in screenBook.pages){
 			PageData data = new PageData();
 			// check if audio.clip exist
 			if (page.clip != null) {
@@ -286,7 +295,7 @@ public class GUILogic : MonoBehaviour {
 		BinaryFormatter bf = new BinaryFormatter ();
 		FileStream file = File.Open (Application.persistentDataPath + "/" +currentBookFileName, FileMode.Open);
 		BookData bookData = (BookData)bf.Deserialize (file);
-		Book.book.pages.Clear();
+		screenBook.pages.Clear();
 		for (int i=0; i < bookData._book.Count; i++){
 			PageData page = bookData._book[i];
 			SinglePage newPage = new SinglePage ();
@@ -294,7 +303,7 @@ public class GUILogic : MonoBehaviour {
 				newPage.clip = deseralizeAudio (page.soundData, page.clipName, page.samples, page.channels, page.freq);
 			}
 			newPage.texture = deserializePhoto (page.photoData);
-			Book.book.pages.Add (newPage);
+			screenBook.pages.Add (newPage);
 		}
 		file.Close ();
 		Debug.Log ("## Load Method completed ##");
@@ -304,6 +313,8 @@ public class GUILogic : MonoBehaviour {
 		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
 		FileInfo[] info = dir.GetFiles("Player*.*");
 		Debug.Log("Player Saved File List Count: " + allPlayerFiles.Count);
+		//clean the allPlayerFiles list so func can be used multiple time at runtime
+		allPlayerFiles.Clear();
 		foreach (FileInfo f in info)
 		{
 				Debug.Log("FileInfo File Full Name: " + f.FullName);
@@ -319,7 +330,7 @@ public class GUILogic : MonoBehaviour {
 // ###### SECTION START: PAGE & BOOK DATA Classes ##########
 
 [Serializable]
-class PageData {
+public class PageData {
 	public float[] soundData;
 	public string clipName;
 	public int samples, channels, freq;
@@ -327,6 +338,6 @@ class PageData {
 }
 
 [Serializable]
-class BookData {
+public class BookData {
 	public List<PageData> _book = new List<PageData>();
 }
