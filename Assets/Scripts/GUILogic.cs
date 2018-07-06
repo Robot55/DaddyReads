@@ -141,7 +141,7 @@ public class GUILogic : MonoBehaviour {
 		// Set popover to last touch position on iOS. This has no effect on Android.
 		NPBinding.UI.SetPopoverPointAtLastTouchPosition();
 		// Pick image
-		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, 1.0f, PickImageFinished);
+		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, 0.5f, PickImageFinished);
 	}
 
 	//Callback
@@ -206,6 +206,15 @@ public class GUILogic : MonoBehaviour {
 			GameObject go;
 			go = Instantiate (fileNameButtonPrefab, fileListContainer.transform.position, fileListContainer.transform.rotation, fileListContainer.transform);
 			go.GetComponentInChildren<Text>().text = _name;
+			Sprite tmpSprite;
+			Texture2D tex=loadTitleTexture(_name);
+			tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+			foreach (Transform t in go.transform){
+				if (t.transform.parent.transform==go.transform && t.gameObject.GetComponent<Image>()!=null){
+					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
+				}
+
+			}
 			go.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
 			
 		}
@@ -275,6 +284,7 @@ public class GUILogic : MonoBehaviour {
 		FileStream file = File.Create (Application.persistentDataPath + "/" + currentBookFileName);
 		BookData bookdata = new BookData ();
 		foreach (SinglePage page in screenBook.pages){
+			
 			PageData data = new PageData();
 			// check if audio.clip exist
 			if (page.clip != null) {
@@ -284,8 +294,9 @@ public class GUILogic : MonoBehaviour {
 				Debug.Log ("No AudioClip for this page. Probably not recorded by user");
 			}
 			data.photoData = page.texture.EncodeToPNG();
-			bookdata._book.Add(data);
+			bookdata._pages.Add(data);
 		}
+			bookdata.bookTitlePhotoData = bookdata._pages[0].photoData;
 		bf.Serialize (file, bookdata);
 		file.Close ();
 		Debug.Log ("file saved: " + currentBookFileName);
@@ -297,8 +308,9 @@ public class GUILogic : MonoBehaviour {
 		FileStream file = File.Open (Application.persistentDataPath + "/" +currentBookFileName, FileMode.Open);
 		BookData bookData = (BookData)bf.Deserialize (file);
 		screenBook.pages.Clear();
-		for (int i=0; i < bookData._book.Count; i++){
-			PageData page = bookData._book[i];
+		screenBook.bookTitleTexture = deserializePhoto (bookData.bookTitlePhotoData);
+		for (int i=0; i < bookData._pages.Count; i++){
+			PageData page = bookData._pages[i];
 			SinglePage newPage = new SinglePage ();
 			if (page.soundData != null){
 				newPage.clip = deseralizeAudio (page.soundData, page.clipName, page.samples, page.channels, page.freq);
@@ -308,6 +320,15 @@ public class GUILogic : MonoBehaviour {
 		}
 		file.Close ();
 		Debug.Log ("## Load Method completed ##");
+	}
+	public Texture2D loadTitleTexture(string bookFileName){
+		Debug.Log("<< Load Texture Method Began >>");
+		BinaryFormatter bf = new BinaryFormatter ();
+		FileStream file = File.Open (Application.persistentDataPath + "/" +bookFileName, FileMode.Open);
+		BookData bookData = (BookData)bf.Deserialize (file);
+		file.Close ();
+		Debug.Log ("## Load Texture Method completed ##");
+		return deserializePhoto(bookData.bookTitlePhotoData);
 	}
 	void getBookFiles(){
 		Debug.Log("<< GetBookFiles Started >>");
@@ -362,5 +383,6 @@ public class PageData {
 
 [Serializable]
 public class BookData {
-	public List<PageData> _book = new List<PageData>();
+	public byte[] bookTitlePhotoData;
+	public List<PageData> _pages = new List<PageData>();
 }

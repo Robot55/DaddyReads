@@ -10,26 +10,12 @@ public class SinglePage{
 }
 
 public class Book : MonoBehaviour {
-
-	//public static Book book;
+	public Texture2D bookTitleTexture;
     public AudioSource curAudio;
 	public List<SinglePage> pages = new List<SinglePage>();
     
 
 	// Use this for initialization
-	/*
-	void Awake () {
-
-		if (book == null) {
-			DontDestroyOnLoad (gameObject);
-			book = this;
-		}
-		else if (book !=this)
-		{
-			Destroy (gameObject);
-		}
-	}
-	*/
 
 	void Awake () {
         curAudio = GetComponent<AudioSource>();
