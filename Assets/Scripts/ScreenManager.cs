@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VoxelBusters.NativePlugins;
+using UnityEngine.UI;
 
 
 public class ScreenManager : MonoBehaviour {
 	public GameObject homeScreen, editorScreen, playerScreen;
 	public GameObject currentScreen;
-	public GameObject guiLogic;
+	public GUILogic guiLogic;
 	// Use this for initialization
 	void Start () {
 		Debug.Log ("<< SCREEN MGR Started >>");
-		guiLogic = GameObject.FindWithTag("MainCamera");
+		guiLogic = GameObject.FindWithTag("MainCamera").GetComponent<GUILogic>();
 		initScreenUI();
 		
 	}
@@ -32,20 +33,12 @@ public class ScreenManager : MonoBehaviour {
 	}
 
 	public void changeScreen (GameObject screen){
-		Debug.Log("<< changeScreen method started >>");
-		Debug.Log("now disabling current screen: " + currentScreen + ". isActive: " + currentScreen.activeInHierarchy);
-		currentScreen.SetActive(false);
-		Debug.Log("current screen: " + currentScreen + " has been disabled. isActive: " +currentScreen.activeInHierarchy);
-		screen.SetActive(true);
+		homeScreen.SetActive(screen==homeScreen ? true : false);
+		playerScreen.SetActive(screen==homeScreen ? false : true);
+		editorScreen.SetActive(screen==editorScreen ? true : false);
 		currentScreen=screen;
-		Debug.Log("new Current screen is: " + currentScreen + ". isActive: " +currentScreen.activeInHierarchy);
+		guiLogic.SendMessage("stopPlayback");
 	}
 
-	public void fromEditorToHome (){
-		// verify saved changes or autosave will go here
-		// change to homeScreen
-		changeScreen(homeScreen);
-		Debug.Log("guiLogic.gameObject is: "+ guiLogic.gameObject.name);
-		guiLogic.gameObject.SendMessage("Start");
-	}
+	
 }

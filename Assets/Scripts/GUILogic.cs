@@ -22,7 +22,6 @@ public class GUILogic : MonoBehaviour {
 	public ScreenManager mainCanvas;
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab;
 	public int pageIndex = 0;
-	public int bookCount;
 
 	void Start () {
 		Debug.Log("<< GUILogic Start() Begun >>");
