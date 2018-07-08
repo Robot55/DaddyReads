@@ -706,7 +706,8 @@ MonoBehaviour:
   fileListContainer: {fileID: 1802571444}
   newBookPrefab: {fileID: 1339826625075720, guid: 8c4a92dd82975402b989ffc3b41978a2,
     type: 2}
-  nextPageText: {fileID: 1345488564}
+  nextPageButton: {fileID: 1733751380}
+  prevPageButton: {fileID: 1168169385}
   pageIndex: 0
 --- !u!81 &493890471
 AudioListener:
@@ -1932,7 +1933,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 0.41911763, g: 0.41911763, b: 0.41911763, a: 0.197}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:

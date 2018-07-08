@@ -21,7 +21,7 @@ public class GUILogic : MonoBehaviour {
 	public Image bookPageDisplayImage;
 	public ScreenManager mainCanvas;
 	public Texture2D newPageTexture;
-	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageText;
+	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton;
 	public int pageIndex = 0;
 
 	void Start () {
@@ -63,7 +63,8 @@ public class GUILogic : MonoBehaviour {
 			setPlayButtonState();
 			setAttachAudioButtonState();
 			setPlayPageAudioState();
-			setNextPageText();
+			setNextPageButton();
+			setPrevPageButton();
 		}
 		
 		
@@ -78,10 +79,22 @@ public class GUILogic : MonoBehaviour {
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 		bookPageDisplayImage.sprite=tmpSprite;
 	}
-	void setNextPageText(){
-		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
-		nextPageText.GetComponent<Text>().text = screenBook.pages.Count-1 == pageIndex ? "+ ADD NEW PAGE" : " Next";
+	void setNextPageButton(){
+		if (mainCanvas.currentScreen==mainCanvas.editorScreen){
+			nextPageButton.GetComponent<Button>().interactable=true;
+			nextPageButton.GetComponentInChildren<Text>().text = screenBook.pages.Count-1 == pageIndex ? "+ ADD NEW PAGE" : " Next";
+
+		} else {
+			if (mainCanvas.currentScreen==mainCanvas.playerScreen){
+				nextPageButton.GetComponentInChildren<Text>().text = "Next";
+				nextPageButton.GetComponent<Button>().interactable= screenBook.pages.Count-1 == pageIndex ? false : true;	
+			}
+		}
 	
+	}
+	void setPrevPageButton(){
+	
+		prevPageButton.GetComponent<Button>().interactable= pageIndex==0 ? false : true;
 	}
 
 	void setRecordButtonState(){
