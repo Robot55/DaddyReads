@@ -19,8 +19,8 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4857531141904838}
-  - component: {fileID: 114733140468621768}
   - component: {fileID: 82801049516003534}
+  - component: {fileID: 114733140468621768}
   m_Layer: 0
   m_Name: newBook
   m_TagString: Untagged
@@ -132,8 +132,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99fe3a78e57cecd4ea1a460e572ee697, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bookTitleTexture: {fileID: 0}
-  curAudio: {fileID: 0}
+  bookTitleTexture: {fileID: 2800000, guid: 38ebaa2c224b4b74885c484693da0a1d, type: 3}
+  curAudio: {fileID: 82801049516003534}
   pages:
   - texture: {fileID: 2800000, guid: 38ebaa2c224b4b74885c484693da0a1d, type: 3}
     clip: {fileID: 0}

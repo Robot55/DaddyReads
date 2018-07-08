@@ -412,7 +412,9 @@ public class GUILogic : MonoBehaviour {
 	}
 	public void createNewBookAndSave(){
 		// currentBook should be newBookPrefab
-		screenBook = newBookPrefab.GetComponent<Book>()!=null ? newBookPrefab.GetComponent<Book>() : screenBook;
+		GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
+		screenBook = newBook.GetComponent<Book>();
+		tmpAudio.clip =  null;
 		// set filename to FileInfo.count+1
 		currentBookFileName = "PlayerInfo"+allPlayerFiles.Count.ToString("000")+".dat";
 		// save
