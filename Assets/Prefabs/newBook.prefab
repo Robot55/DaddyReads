@@ -132,25 +132,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99fe3a78e57cecd4ea1a460e572ee697, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bookTitleTexture: {fileID: 0}
   curAudio: {fileID: 0}
   pages:
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
-    clip: {fileID: 0}
-  - texture: {fileID: 2800000, guid: 4bfd0e2c57ee29a4795ca84b021fb34b, type: 3}
+  - texture: {fileID: 2800000, guid: d1c414868d9264947bbf887a5b633677, type: 3}
     clip: {fileID: 0}

@@ -20,7 +20,8 @@ public class GUILogic : MonoBehaviour {
 	public Sprite playBtnSprite, stopBtnSprite;
 	public Image bookPageDisplayImage;
 	public ScreenManager mainCanvas;
-	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab;
+	public Texture2D newPageTexture;
+	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageText;
 	public int pageIndex = 0;
 
 	void Start () {
@@ -56,12 +57,13 @@ public class GUILogic : MonoBehaviour {
 		}*/
 
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen && mainCanvas.currentScreen.activeInHierarchy==true){
-			//if current screen is EDITOR and is active
+			//if current screen is not HOME (I.E. Player OR Editor) and is active
 			drawSprite();
 			setRecordButtonState();
 			setPlayButtonState();
 			setAttachAudioButtonState();
 			setPlayPageAudioState();
+			setNextPageText();
 		}
 		
 		
@@ -75,6 +77,11 @@ public class GUILogic : MonoBehaviour {
 		Texture2D tex=screenBook.pages [pageIndex].texture;
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 		bookPageDisplayImage.sprite=tmpSprite;
+	}
+	void setNextPageText(){
+		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
+		nextPageText.GetComponent<Text>().text = screenBook.pages.Count-1 == pageIndex ? "+ ADD NEW PAGE" : " Next";
+	
 	}
 
 	void setRecordButtonState(){
@@ -189,6 +196,13 @@ public class GUILogic : MonoBehaviour {
 		if (pageIndex < screenBook.pages.Count - 1) {
 				pageIndex++;
 				//texture = screenBook.pages [pageIndex].texture;
+			} else { //add another page if in EDITOR mode
+				if (mainCanvas.currentScreen==mainCanvas.editorScreen){
+					SinglePage newPage = new SinglePage();
+					newPage.texture=newPageTexture;
+					screenBook.pages.Add(newPage);
+					nextPage();
+				}
 			}
 	}
 	public void recordAudioStop(){
@@ -384,6 +398,8 @@ public class GUILogic : MonoBehaviour {
 	}
 	public void createNewBookAndSave(){
 		// currentBook should be newBookPrefab
+
+		// **** FIX *** create new book on the fly! see if that works!
 		screenBook = newBookPrefab.GetComponent<Book>()!=null ? newBookPrefab.GetComponent<Book>() : screenBook;
 		// set filename to FileInfo.count+1
 		currentBookFileName = "PlayerInfo"+allPlayerFiles.Count.ToString("000")+".dat";
