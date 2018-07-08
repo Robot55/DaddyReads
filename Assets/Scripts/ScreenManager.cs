@@ -42,6 +42,7 @@ public class ScreenManager : MonoBehaviour {
 		currentScreen=screen;
 		Debug.Log("current screen AFTER: " + currentScreen.name);
 		
+		guiLogic.tmpAudio.clip =  null;
 		guiLogic.SendMessage("stopPlayback");
 		guiLogic.SendMessage("stopPageAudio");
 		guiLogic.SendMessage("Start");

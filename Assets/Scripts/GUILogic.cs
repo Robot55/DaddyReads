@@ -15,7 +15,7 @@ public class GUILogic : MonoBehaviour {
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage;
 	public string currentBookFileName = "PlayerInfo.dat";
 	List<string> allPlayerFiles = new List<string>();
-	AudioSource tmpAudio ;
+	public AudioSource tmpAudio ;
 	public Book screenBook;
 	public Sprite playBtnSprite, stopBtnSprite;
 	public Image bookPageDisplayImage;
@@ -414,7 +414,6 @@ public class GUILogic : MonoBehaviour {
 		// currentBook should be newBookPrefab
 		GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
 		screenBook = newBook.GetComponent<Book>();
-		tmpAudio.clip =  null;
 		// set filename to FileInfo.count+1
 		currentBookFileName = "PlayerInfo"+allPlayerFiles.Count.ToString("000")+".dat";
 		// save
