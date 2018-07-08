@@ -25,6 +25,8 @@ public class GUILogic : MonoBehaviour {
 
 	void Start () {
 		Debug.Log("<< GUILogic Start() Begun >>");
+		Debug.Log("current pageIndex is: " + pageIndex + ". resetting to 0");
+		pageIndex = 0;
 		if (screenBook != null){
 			Debug.Log("book exists: " + screenBook);	
 			tmpAudio =  tmpAudio==null ? GetComponent<AudioSource> () : tmpAudio;
@@ -44,7 +46,16 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	void Update () {
-		if (mainCanvas.currentScreen==mainCanvas.editorScreen && mainCanvas.currentScreen.activeInHierarchy==true){
+		/*if (mainCanvas.currentScreen==mainCanvas.editorScreen && mainCanvas.currentScreen.activeInHierarchy==true){
+			//if current screen is EDITOR and is active
+			drawSprite();
+			setRecordButtonState();
+			setPlayButtonState();
+			setAttachAudioButtonState();
+			setPlayPageAudioState();
+		}*/
+
+		if (mainCanvas.currentScreen!=mainCanvas.homeScreen && mainCanvas.currentScreen.activeInHierarchy==true){
 			//if current screen is EDITOR and is active
 			drawSprite();
 			setRecordButtonState();
@@ -67,6 +78,7 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	void setRecordButtonState(){
+		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
 		ColorBlock cb;
 		cb=recAudioButton.colors;
 		if (Microphone.IsRecording (null)) { //if Mic currently IS recording
@@ -88,6 +100,7 @@ public class GUILogic : MonoBehaviour {
 		recAudioButton.colors=cb;
 	}
 	void setPlayButtonState(){
+		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
 		if (tmpAudio.clip != null) {	// does playable clip exist already?
 			playButton.interactable=true;	
 			if (tmpAudio.isPlaying) {	// Is recording currently being played?
@@ -106,6 +119,7 @@ public class GUILogic : MonoBehaviour {
 		}	
 	}
 	void setAttachAudioButtonState(){
+		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
 		if (tmpAudio.clip != null && !Microphone.IsRecording(null)) { //if audio cip exists AND Mic is NOT currently recording
 			//show attach button
 			attachAudioToPageButton.interactable=true;
@@ -214,7 +228,7 @@ public class GUILogic : MonoBehaviour {
 				}
 
 			}
-			go.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
+			go.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
 			
 		}
 	}
@@ -229,6 +243,17 @@ public class GUILogic : MonoBehaviour {
 			load();
 			//tell ui to change into editor mode
 			mainCanvas.changeScreen(mainCanvas.editorScreen);
+	}
+	void loadAndPlayBook (GameObject go) { //for onClick button
+			Debug.Log("<<< loadAnPlayBook func started >>>");
+			Debug.Log("gameObject is: " + go.name);
+			Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+			//set global filename for load/save
+			currentBookFileName = go.GetComponentInChildren<Text>().text;
+			//call load()
+			load();
+			//tell ui to change into editor mode
+			mainCanvas.changeScreen(mainCanvas.playerScreen);
 	}
 
 
