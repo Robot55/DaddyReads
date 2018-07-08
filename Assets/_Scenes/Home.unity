@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -700,7 +700,7 @@ MonoBehaviour:
   stopBtnSprite: {fileID: 21300000, guid: a09a59fb6c38446f29a6729198d9c22d, type: 3}
   bookPageDisplayImage: {fileID: 1324337462}
   mainCanvas: {fileID: 0}
-  newPageTexture: {fileID: 2800000, guid: d1c414868d9264947bbf887a5b633677, type: 3}
+  newPageTexture: {fileID: 2800000, guid: 38ebaa2c224b4b74885c484693da0a1d, type: 3}
   fileNameButtonPrefab: {fileID: 1371201608370900, guid: 82d916f3b7461421283a5ba2372ec1e0,
     type: 2}
   fileListContainer: {fileID: 1802571444}
@@ -3460,7 +3460,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99fe3a78e57cecd4ea1a460e572ee697, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bookTitleTexture: {fileID: 0}
+  bookTitleTexture: {fileID: 2800000, guid: b7b37a97dcfc01b48a62d5e021e8fc64, type: 3}
   curAudio: {fileID: 0}
   pages:
   - texture: {fileID: 2800000, guid: b7b37a97dcfc01b48a62d5e021e8fc64, type: 3}

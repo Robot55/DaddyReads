@@ -35,12 +35,15 @@ public class ScreenManager : MonoBehaviour {
 	public void changeScreen (GameObject screen){
 		Debug.Log("<<< changeScreen func started >>>");
 		Debug.Log("current screen BEFORE: " + currentScreen.name);
+		
 		homeScreen.SetActive(screen==homeScreen ? true : false);
 		playerScreen.SetActive(screen==homeScreen ? false : true);
 		editorScreen.SetActive(screen==editorScreen ? true : false);
 		currentScreen=screen;
 		Debug.Log("current screen AFTER: " + currentScreen.name);
+		
 		guiLogic.SendMessage("stopPlayback");
+		guiLogic.SendMessage("stopPageAudio");
 		guiLogic.SendMessage("Start");
 
 	}

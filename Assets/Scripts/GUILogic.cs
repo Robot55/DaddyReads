@@ -331,7 +331,8 @@ public class GUILogic : MonoBehaviour {
 			} else {
 				Debug.Log ("No AudioClip for this page. Probably not recorded by user");
 			}
-			data.photoData = page.texture.EncodeToPNG();
+			Debug.Log("page texture is: " + page.texture);
+			data.photoData = page.texture.EncodeToPNG()!=null ? page.texture.EncodeToPNG() : page.texture.EncodeToJPG();
 			bookdata._pages.Add(data);
 		}
 			bookdata.bookTitlePhotoData = bookdata._pages[0].photoData;
@@ -398,8 +399,6 @@ public class GUILogic : MonoBehaviour {
 	}
 	public void createNewBookAndSave(){
 		// currentBook should be newBookPrefab
-
-		// **** FIX *** create new book on the fly! see if that works!
 		screenBook = newBookPrefab.GetComponent<Book>()!=null ? newBookPrefab.GetComponent<Book>() : screenBook;
 		// set filename to FileInfo.count+1
 		currentBookFileName = "PlayerInfo"+allPlayerFiles.Count.ToString("000")+".dat";

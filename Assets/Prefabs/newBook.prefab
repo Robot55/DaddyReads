@@ -135,5 +135,5 @@ MonoBehaviour:
   bookTitleTexture: {fileID: 0}
   curAudio: {fileID: 0}
   pages:
-  - texture: {fileID: 2800000, guid: d1c414868d9264947bbf887a5b633677, type: 3}
+  - texture: {fileID: 2800000, guid: 38ebaa2c224b4b74885c484693da0a1d, type: 3}
     clip: {fileID: 0}
