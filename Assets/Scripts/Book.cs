@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxelBusters.NativePlugins;
+
 
 [System.Serializable]
 public class SinglePage{ 

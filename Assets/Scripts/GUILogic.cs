@@ -171,10 +171,12 @@ public class GUILogic : MonoBehaviour {
 
 // ###### SECTION START: UI BUTTONS ONCLICK METHODS ##########
 	public void PickPhoto(){
+		Debug.Log ("<<< PickPhoto method started>>");
 		// Set popover to last touch position on iOS. This has no effect on Android.
 		NPBinding.UI.SetPopoverPointAtLastTouchPosition();
 		// Pick image
-		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, 0.5f, PickImageFinished);
+		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, 0.25f, PickImageFinished);
+		Debug.Log ("<<< PickPhoto method Ended>>");
 	}
 
 	//Callback
