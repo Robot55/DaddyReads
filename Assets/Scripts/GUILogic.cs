@@ -81,6 +81,8 @@ public class GUILogic : MonoBehaviour {
 		Texture2D tex=screenBook.pages [pageIndex].texture;
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 		bookPageDisplayImage.sprite=tmpSprite;
+		bookPageDisplayImage.type=Image.Type.Simple;
+		bookPageDisplayImage.preserveAspect=true;
 	}
 	void setNextPageButton(){
 		if (mainCanvas.currentScreen==mainCanvas.editorScreen){
@@ -268,12 +270,10 @@ public class GUILogic : MonoBehaviour {
 			Sprite tmpSprite;
 			Texture2D tex=loadTitleTexture(_name);
 			tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
-			foreach (Transform t in go.transform){
-				if (t.transform.parent.transform==go.transform && t.gameObject.GetComponent<Image>()!=null){
-					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
-				}
-
-			}
+			go.GetComponent<Image>().sprite=tmpSprite;
+			Debug.Log("...trying to add onClick AddListener");
+			if (go.GetComponent<Button>()!=null) print ("----- Hello from: " + go.name);
+			go.GetComponent<Button>().onClick.RemoveAllListeners();
 			go.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
 			
 		}
