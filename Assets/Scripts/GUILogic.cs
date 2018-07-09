@@ -24,6 +24,8 @@ public class GUILogic : MonoBehaviour {
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton;
 	public int pageIndex = 0;
 
+	public bool pageAudioPlayed=false;
+
 	void Start () {
 		Debug.Log("<< GUILogic Start() Begun >>");
 		Debug.Log("current pageIndex is: " + pageIndex + ". resetting to 0");
@@ -38,6 +40,7 @@ public class GUILogic : MonoBehaviour {
 			Debug.Log("mainCanvas found: " + mainCanvas);
 			getBookFiles();
 			createBookButtonList();
+			setAutoPlayAudioState();
 		} else { // if screenBook = null
 			Debug.Log("screenBook=null trying to fetch");
 			screenBook = GameObject.FindWithTag("BOOK").GetComponent<Book>();
@@ -150,6 +153,15 @@ public class GUILogic : MonoBehaviour {
 		}
 	}
 
+	void setAutoPlayAudioState(){
+		if (mainCanvas.currentScreen!=mainCanvas.playerScreen) return;
+		if (screenBook.pages[pageIndex].clip==null) return;
+		if (pageAudioPlayed==true) return;
+		if (screenBook.curAudio.isPlaying) return;
+		playPageAudio();
+
+
+	}
 	void setPlayPageAudioState (){
 		if (screenBook.pages[pageIndex].clip != null){
 			playButtonOnImage.gameObject.SetActive(true);
@@ -197,6 +209,7 @@ public class GUILogic : MonoBehaviour {
 	void playPageAudio(){
 		screenBook.curAudio.clip = screenBook.pages[pageIndex].clip;
 		screenBook.curAudio.Play();
+		pageAudioPlayed=true;
 	}
 	void stopPageAudio(){
 		screenBook.curAudio.Stop ();
@@ -204,12 +217,16 @@ public class GUILogic : MonoBehaviour {
 	public void prevPage () {
 		if (pageIndex > 0) {
 				pageIndex--;
+				pageAudioPlayed=false;
+				setAutoPlayAudioState();
 				//texture = screenBook.pages [pageIndex].texture;
 			}
 	}
 	public void nextPage () {
 		if (pageIndex < screenBook.pages.Count - 1) {
 				pageIndex++;
+				pageAudioPlayed=false;
+				setAutoPlayAudioState();
 				//texture = screenBook.pages [pageIndex].texture;
 			} else { //add another page if in EDITOR mode
 				if (mainCanvas.currentScreen==mainCanvas.editorScreen){
