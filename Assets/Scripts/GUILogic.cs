@@ -12,7 +12,7 @@ using VoxelBusters.NativePlugins;
 
 public class GUILogic : MonoBehaviour {
 	//make public button vars and populate them in Inspector. used for changing functionality (addListener)
-	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage;
+	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage, daddyButton;
 	public string currentBookFileName = "PlayerInfo.dat";
 	List<string> allPlayerFiles = new List<string>();
 	public AudioSource tmpAudio ;
@@ -21,10 +21,10 @@ public class GUILogic : MonoBehaviour {
 	public Image bookPageDisplayImage;
 	public ScreenManager mainCanvas;
 	public Texture2D newPageTexture;
-	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton;
+	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, onScreenMessageTextPrefab, onScreenMessageContainer;
 	public int pageIndex = 0;
 
-	public bool pageAudioPlayed=false;
+	public bool pageAudioPlayed=false, editorMode=false;
 
 	void Start () {
 		Debug.Log("<< GUILogic Start() Begun >>");
@@ -224,6 +224,13 @@ public class GUILogic : MonoBehaviour {
 				//texture = screenBook.pages [pageIndex].texture;
 			}
 	}
+	public void toggleEditMode(){
+		editorMode = !editorMode;
+		Quaternion newRotation = daddyButton.image.transform.rotation;
+		newRotation.z= newRotation.z==0 ? 180 : 0;
+		daddyButton.image.transform.rotation = newRotation;
+		Start();
+	}
 	public void nextPage () {
 		if (pageIndex < screenBook.pages.Count - 1) {
 				pageIndex++;
@@ -250,7 +257,10 @@ public class GUILogic : MonoBehaviour {
 		screenBook.pages [i].clip = recordedClip; // Attaches Recording to specific texture/Photo
 	}
 
-	
+	/*public void daddyButtonClicked(){
+		if (onScreenMessageContainer.GetComponentsInChildren<Text>().Length>0) return;
+		GameObject go=Instantiate(onScreenMessageTextPrefab, onScreenMessageContainer.transform.position, onScreenMessageContainer.transform.rotation, onScreenMessageContainer.transform);
+	}*/	
 
 	void createBookButtonList (){
 		if (allPlayerFiles.Count==0) {
@@ -274,7 +284,8 @@ public class GUILogic : MonoBehaviour {
 			Debug.Log("...trying to add onClick AddListener");
 			if (go.GetComponent<Button>()!=null) print ("----- Hello from: " + go.name);
 			go.GetComponent<Button>().onClick.RemoveAllListeners();
-			go.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
+			if (!editorMode) go.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
+			if (editorMode) go.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
 			
 		}
 	}
