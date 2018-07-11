@@ -21,8 +21,10 @@ public class GUILogic : MonoBehaviour {
 	public Image bookPageDisplayImage;
 	public ScreenManager mainCanvas;
 	public Texture2D newPageTexture;
-	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, onScreenMessageTextPrefab, onScreenMessageContainer;
+	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
 	public int pageIndex = 0;
+
+	public float mobilePhotoResolution; // set in inspector
 
 	public bool pageAudioPlayed=false, editorMode=false;
 
@@ -189,7 +191,8 @@ public class GUILogic : MonoBehaviour {
 		// Set popover to last touch position on iOS. This has no effect on Android.
 		NPBinding.UI.SetPopoverPointAtLastTouchPosition();
 		// Pick image
-		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, 0.25f, PickImageFinished);
+		if (mobilePhotoResolution > 1.0f || mobilePhotoResolution < 0.2f) mobilePhotoResolution = 0.8f;
+		NPBinding.MediaLibrary.PickImage(eImageSource.BOTH, mobilePhotoResolution, PickImageFinished);
 		Debug.Log ("<<< PickPhoto method Ended>>");
 	}
 
@@ -216,29 +219,39 @@ public class GUILogic : MonoBehaviour {
 	void stopPageAudio(){
 		screenBook.curAudio.Stop ();
 	}
-	public void prevPage () {
-		if (pageIndex > 0) {
-				pageIndex--;
-				pageAudioPlayed=false;
-				setAutoPlayAudioState();
-				//texture = screenBook.pages [pageIndex].texture;
-			}
-	}
+	
 	public void toggleEditMode(){
-		editorMode = !editorMode;
+		//first toggle editor mode
+		editorMode = !editorMode; 
+		//flip daddybutton icon vertically
 		Quaternion newRotation = daddyButton.image.transform.rotation;
 		newRotation.z= newRotation.z==0 ? 180 : 0;
 		daddyButton.image.transform.rotation = newRotation;
-		float originalDuration = daddyButton.gameObject.GetComponent<KidProofTimedButton>().holdDuration;
-		Debug.Log("original duration is: " + originalDuration);
-		//daddyButton.gameObject.GetComponent<KidProofTimedButton>().holdDuration =
+		kidModeBackground.SetActive(!kidModeBackground.activeInHierarchy);
+		daddyModeBackground.SetActive(!daddyModeBackground.activeInHierarchy);
 		Start();
 	}
+
+	public void daddyButtonLocked(){
+		onScreenMessageTextInScene.gameObject.SetActive(true);
+	}
+	public void daddyButtonUnlocked(){
+		toggleEditMode();
+	}
+	public void prevPage () {
+		if (pageIndex > 0) {
+				pageIndex--;
+				initPageDisplay();
+			}
+	}
+
 	public void nextPage () {
 		if (pageIndex < screenBook.pages.Count - 1) {
 				pageIndex++;
-				pageAudioPlayed=false;
-				setAutoPlayAudioState();
+				initPageDisplay();
+				
+				
+				
 				//texture = screenBook.pages [pageIndex].texture;
 			} else { //add another page if in EDITOR mode
 				if (mainCanvas.currentScreen==mainCanvas.editorScreen){
@@ -248,6 +261,13 @@ public class GUILogic : MonoBehaviour {
 					nextPage();
 				}
 			}
+	}
+
+	void initPageDisplay(){
+		if(tmpAudio.isPlaying) tmpAudio.Stop();
+		if(screenBook.curAudio.isPlaying) screenBook.curAudio.Stop();
+		pageAudioPlayed=false;
+		setAutoPlayAudioState();
 	}
 	public void recordAudioStop(){
 		EndRecording (tmpAudio, null);
@@ -289,6 +309,11 @@ public class GUILogic : MonoBehaviour {
 			go.GetComponent<Button>().onClick.RemoveAllListeners();
 			if (!editorMode) go.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
 			if (editorMode) go.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
+			foreach (Image img in go.GetComponentsInChildren<Image>()){
+				Debug.Log("IMG: " + img.gameObject.name);
+				if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
+				if (img.gameObject.name.Contains("editButton") && !editorMode) img.gameObject.SetActive(false);
+			}
 			
 		}
 	}
@@ -443,6 +468,18 @@ public class GUILogic : MonoBehaviour {
 		currentBookFileName = "PlayerInfo00.dat";
 		save();
 	}
+	public void backButtonClicked(){
+		if (mainCanvas.currentScreen!=mainCanvas.editorScreen) {
+			Debug.LogWarning("auto-save attempt denied");
+			mainCanvas.changeScreen(mainCanvas.homeScreen); 
+			return;
+			}
+		Debug.LogWarning("Attempting auto-save on back button"); 
+		save();  
+		Debug.LogWarning("<color=green>auto-save complete</color>"); 
+		if(editorMode) toggleEditMode(); 
+		mainCanvas.changeScreen(mainCanvas.homeScreen);
+	}
 	public void createNewBookAndSave(){
 		// currentBook should be newBookPrefab
 		GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
@@ -450,6 +487,7 @@ public class GUILogic : MonoBehaviour {
 		// set filename to FileInfo.count+1
 		currentBookFileName = "PlayerInfo"+allPlayerFiles.Count.ToString("000")+".dat";
 		// save
+		if (!editorMode) toggleEditMode();
 		save();
 		mainCanvas.changeScreen(mainCanvas.editorScreen);
 	}

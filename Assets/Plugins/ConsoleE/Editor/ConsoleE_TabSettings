@@ -21,7 +21,7 @@
 </IconMain>
 <IconToolbar>
 <Layers>
-<e Size = "24" OutlineThickness = "0.428571403026581" OutlineShape = "Round" IconText = "" IconShape = "OctagonSmall" OffsetX = "0" OffsetY = "0" IsItalic = "false">
+<e Size = "25" OutlineThickness = "0.428571403026581" OutlineShape = "Round" IconText = "" IconShape = "OctagonSmall" OffsetX = "0" OffsetY = "0" IsItalic = "false">
 <ColorIconCore ProSkin = "FF5959FF" FreeSkin = "FF6363EC" />
 <ColorIconOutline ProSkin = "922B2BB9" FreeSkin = "853E3EC4" />
 </e>
@@ -33,7 +33,7 @@
 </IconToolbar>
 <IconToolbarGrey>
 <Layers>
-<e Size = "24" OutlineThickness = "0.428571403026581" OutlineShape = "Round" IconText = "" IconShape = "OctagonSmall" OffsetX = "0" OffsetY = "0" IsItalic = "false">
+<e Size = "25" OutlineThickness = "0.428571403026581" OutlineShape = "Round" IconText = "" IconShape = "OctagonSmall" OffsetX = "0" OffsetY = "0" IsItalic = "false">
 <ColorIconCore ProSkin = "7F7F7FB2" FreeSkin = "E5E5E5B2" />
 <ColorIconOutline ProSkin = "3F3F3FCC" FreeSkin = "7F7F7FCC" />
 </e>
@@ -103,7 +103,7 @@
 <ColorIconCore ProSkin = "C6B83DFF" FreeSkin = "FFDD00B7" />
 <ColorIconOutline ProSkin = "B28906C8" FreeSkin = "A87700B5" />
 </e>
-<e Size = "14" OutlineThickness = "0.428571403026581" OutlineShape = "Block" IconText = "!" IconShape = "None" OffsetX = "0" OffsetY = "3.5" IsItalic = "false">
+<e Size = "14" OutlineThickness = "0.428571403026581" OutlineShape = "Block" IconText = "!" IconShape = "None" OffsetX = "0" OffsetY = "2.75" IsItalic = "false">
 <ColorIconCore ProSkin = "B9B9B9E3" FreeSkin = "D9D7BFFF" />
 <ColorIconOutline ProSkin = "6E5E1AFF" FreeSkin = "A58300C8" />
 </e>
@@ -192,7 +192,7 @@
 <ColorIconCore ProSkin = "C8C8C8FF" FreeSkin = "FFFFFFE8" />
 <ColorIconOutline ProSkin = "282828C8" FreeSkin = "00000086" />
 </e>
-<e Size = "14" OutlineThickness = "0.428571403026581" OutlineShape = "Block" IconText = "!" IconShape = "None" OffsetX = "0" OffsetY = "0" IsItalic = "false">
+<e Size = "14" OutlineThickness = "0.428571403026581" OutlineShape = "Block" IconText = "!" IconShape = "None" OffsetX = "0" OffsetY = "-1.5" IsItalic = "false">
 <ColorIconCore ProSkin = "C8C8C8FF" FreeSkin = "EFEFEFEA" />
 <ColorIconOutline ProSkin = "323232C8" FreeSkin = "00000088" />
 </e>
