@@ -229,6 +229,9 @@ public class GUILogic : MonoBehaviour {
 		Quaternion newRotation = daddyButton.image.transform.rotation;
 		newRotation.z= newRotation.z==0 ? 180 : 0;
 		daddyButton.image.transform.rotation = newRotation;
+		float originalDuration = daddyButton.gameObject.GetComponent<KidProofTimedButton>().holdDuration;
+		Debug.Log("original duration is: " + originalDuration);
+		//daddyButton.gameObject.GetComponent<KidProofTimedButton>().holdDuration =
 		Start();
 	}
 	public void nextPage () {

@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using VoxelBusters.NativePlugins;
 
 public class KidProofTimedButton : MonoBehaviour {
 	public float holdDuration;
-	public GameObject objContainingMethodToRun, buttonObjectUsed;
+	GameObject objContainingMethodToRun, buttonObjectUsed;
 	public string nameOfMethodToRun;
 	bool timerRunning = false;
 	float timer = 0f;
