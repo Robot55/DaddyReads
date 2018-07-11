@@ -271,6 +271,11 @@ public class GUILogic : MonoBehaviour {
 	}
 	public void recordAudioStop(){
 		EndRecording (tmpAudio, null);
+		if (tmpAudio.clip!=null){
+			Debug.Log("<color=green>Do something when tempClip stopped recording and exists!</color>");
+			attachCurrentRecording();
+			
+		}
 	}
 	public void recordAudio(){
 		tmpAudio.clip = Microphone.Start (null, false, 60, 44100);
