@@ -21,6 +21,7 @@ public class GUILogic : MonoBehaviour {
 	public Image bookPageDisplayImage;
 	public ScreenManager mainCanvas;
 	public Texture2D newPageTexture;
+	public Sprite nextPageButtonTextureNormal, nextPageButtonTextureAddPage;
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
 	public int pageIndex = 0;
 
@@ -101,16 +102,16 @@ public class GUILogic : MonoBehaviour {
 					nextPageButton.SetActive(false);
 					} else { // if page texture no longer null
 					nextPageButton.SetActive(true);
-					nextPageButton.GetComponentInChildren<Text>().text ="+ ADD NEW PAGE";
+					nextPageButton.GetComponent<Button>().image.sprite=nextPageButtonTextureAddPage;
 
 					}
 				} else { //if this is not the last page
 					nextPageButton.SetActive(true);
-					nextPageButton.GetComponentInChildren<Text>().text ="Next";
+					nextPageButton.GetComponent<Button>().image.sprite=nextPageButtonTextureNormal;
 				}	
 		} else { //if not in editor screen
 			if (mainCanvas.currentScreen==mainCanvas.playerScreen){ // if in player screen
-				nextPageButton.GetComponentInChildren<Text>().text = "Next";
+				nextPageButton.GetComponent<Button>().image.sprite=nextPageButtonTextureNormal;
 				if (screenBook.pages.Count-1 == pageIndex){ //if last page
 					nextPageButton.SetActive(false);
 				} else { //if not last page
