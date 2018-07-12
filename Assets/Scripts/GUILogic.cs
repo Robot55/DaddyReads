@@ -313,13 +313,6 @@ public class GUILogic : MonoBehaviour {
 			drawSprite();
 			setTakePhotoButtonState();
 			}
-
-		if (bookPageDisplayImage.sprite.texture == newPageTexture){
-		 Debug.Log("texture match found: "+ bookPageDisplayImage.sprite.texture.name);
-		 
-
-
-		}
 	}
 	public void recordAudioStop(){
 		EndRecording (tmpAudio, null);
