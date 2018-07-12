@@ -12,7 +12,7 @@ using VoxelBusters.NativePlugins;
 
 public class GUILogic : MonoBehaviour {
 	//make public button vars and populate them in Inspector. used for changing functionality (addListener)
-	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage, daddyButton;
+	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage, daddyButton, takePhotoButton;
 	public string currentBookFileName = "PlayerInfo.dat";
 	List<string> allPlayerFiles = new List<string>();
 	public AudioSource tmpAudio ;
@@ -63,10 +63,10 @@ public class GUILogic : MonoBehaviour {
 
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen && mainCanvas.currentScreen.activeInHierarchy==true){
 			//if current screen is not HOME (I.E. Player OR Editor) and is active
-			drawSprite();
+			//drawSprite();
 			setRecordButtonState();
-			setPlayButtonState();
-			setAttachAudioButtonState();
+			//setPlayButtonState();
+			//setAttachAudioButtonState();
 			setPlayPageAudioState();
 			setNextPageButton();
 			setPrevPageButton();
@@ -80,32 +80,70 @@ public class GUILogic : MonoBehaviour {
 
 	void drawSprite () {
 		Sprite tmpSprite;
-		Texture2D tex=screenBook.pages [pageIndex].texture;
+		Texture2D tex;
+		if(screenBook.pages[pageIndex].texture==null){
+			Debug.LogWarning("page doesn't have texture. showing PlaceHolder");
+			tex=newPageTexture;
+
+		} else{
+
+		tex=screenBook.pages [pageIndex].texture;
+		}
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 		bookPageDisplayImage.sprite=tmpSprite;
 		bookPageDisplayImage.type=Image.Type.Simple;
 		bookPageDisplayImage.preserveAspect=true;
 	}
 	void setNextPageButton(){
-		if (mainCanvas.currentScreen==mainCanvas.editorScreen){
-			nextPageButton.GetComponent<Button>().interactable=true;
-			nextPageButton.GetComponentInChildren<Text>().text = screenBook.pages.Count-1 == pageIndex ? "+ ADD NEW PAGE" : " Next";
+		if (mainCanvas.currentScreen==mainCanvas.editorScreen){ //if in editor screen
+			if (screenBook.pages.Count-1 == pageIndex){ // if this is last page
+					if (screenBook.pages[pageIndex].texture==null){ //  and if page texture is still null
+					nextPageButton.SetActive(false);
+					} else { // if page texture no longer null
+					nextPageButton.SetActive(true);
+					nextPageButton.GetComponentInChildren<Text>().text ="+ ADD NEW PAGE";
 
-		} else {
-			if (mainCanvas.currentScreen==mainCanvas.playerScreen){
+					}
+				} else { //if this is not the last page
+					nextPageButton.SetActive(true);
+					nextPageButton.GetComponentInChildren<Text>().text ="Next";
+				}	
+		} else { //if not in editor screen
+			if (mainCanvas.currentScreen==mainCanvas.playerScreen){ // if in player screen
 				nextPageButton.GetComponentInChildren<Text>().text = "Next";
-				nextPageButton.GetComponent<Button>().interactable= screenBook.pages.Count-1 == pageIndex ? false : true;	
+				if (screenBook.pages.Count-1 == pageIndex){ //if last page
+					nextPageButton.SetActive(false);
+				} else { //if not last page
+					nextPageButton.SetActive(true);
+				}	
 			}
 		}
 	
 	}
 	void setPrevPageButton(){
 	
-		prevPageButton.GetComponent<Button>().interactable= pageIndex==0 ? false : true;
+		if(pageIndex==0) {
+			prevPageButton.SetActive(false);
+	 	} else {
+			 prevPageButton.SetActive(true);
+			 };
+	}
+
+	void setTakePhotoButtonState(){
+		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
+		ColorBlock cb;
+		cb=takePhotoButton.colors;
+		cb.normalColor= screenBook.pages[pageIndex].texture==null ? Color.red : Color.white;
+		takePhotoButton.colors=cb;
 	}
 
 	void setRecordButtonState(){
 		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
+		if (screenBook.pages[pageIndex].texture==null){
+			recAudioButton.gameObject.SetActive(false);
+			return;
+		}
+		recAudioButton.gameObject.SetActive(true);
 		ColorBlock cb;
 		cb=recAudioButton.colors;
 		if (Microphone.IsRecording (null)) { //if Mic currently IS recording
@@ -120,8 +158,8 @@ public class GUILogic : MonoBehaviour {
 			recAudioButton.GetComponentInChildren<Text>().text="RECORD Audio";
 			recAudioButton.onClick.RemoveAllListeners();
 			recAudioButton.onClick.AddListener(recordAudio);
-			//set normal color to RED
-			cb.normalColor=Color.red;
+			//set normal color to RED or WHITE
+			cb.normalColor= screenBook.pages[pageIndex].clip==null ? Color.red : Color.white;
 		}
 		cb.highlightedColor=cb.normalColor;
 		recAudioButton.colors=cb;
@@ -201,6 +239,7 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log("Reason = " + _reason);
 		Debug.Log("Texture = " + _image);
 		screenBook.pages[pageIndex].texture = _image;
+		initPageDisplay();
 	}
 	void attachCurrentRecording(){
 		AttachRecording(tmpAudio.clip, pageIndex);
@@ -256,7 +295,7 @@ public class GUILogic : MonoBehaviour {
 			} else { //add another page if in EDITOR mode
 				if (mainCanvas.currentScreen==mainCanvas.editorScreen){
 					SinglePage newPage = new SinglePage();
-					newPage.texture=newPageTexture;
+					newPage.texture=null;
 					screenBook.pages.Add(newPage);
 					nextPage();
 				}
@@ -268,6 +307,18 @@ public class GUILogic : MonoBehaviour {
 		if(screenBook.curAudio.isPlaying) screenBook.curAudio.Stop();
 		pageAudioPlayed=false;
 		setAutoPlayAudioState();
+
+		if (mainCanvas.currentScreen!=mainCanvas.homeScreen){
+			drawSprite();
+			setTakePhotoButtonState();
+			}
+
+		if (bookPageDisplayImage.sprite.texture == newPageTexture){
+		 Debug.Log("texture match found: "+ bookPageDisplayImage.sprite.texture.name);
+		 
+
+
+		}
 	}
 	public void recordAudioStop(){
 		EndRecording (tmpAudio, null);
@@ -309,13 +360,10 @@ public class GUILogic : MonoBehaviour {
 			Texture2D tex=loadTitleTexture(_name);
 			tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 			go.GetComponent<Image>().sprite=tmpSprite;
-			Debug.Log("...trying to add onClick AddListener");
-			if (go.GetComponent<Button>()!=null) print ("----- Hello from: " + go.name);
 			go.GetComponent<Button>().onClick.RemoveAllListeners();
 			if (!editorMode) go.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
 			if (editorMode) go.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
 			foreach (Image img in go.GetComponentsInChildren<Image>()){
-				Debug.Log("IMG: " + img.gameObject.name);
 				if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
 				if (img.gameObject.name.Contains("editButton") && !editorMode) img.gameObject.SetActive(false);
 			}
@@ -394,6 +442,23 @@ public class GUILogic : MonoBehaviour {
 	}
 	public void save(){
 		Debug.Log("<< Save Method Began >>");
+		Debug.Log("verifying book not empty");
+		if (screenBook.pages.Count==0) {Debug.LogWarning("<color=red>Book is Empty. Save Cancelled</color>"); return;}
+		List<SinglePage> emptyPages = new List<SinglePage>();
+		foreach (SinglePage page in screenBook.pages){
+			if (page.texture==null) {
+				Debug.Log("page has no texture - adding to bad list");
+				emptyPages.Add(page);
+				}
+		}
+		foreach (SinglePage page in emptyPages){
+			Debug.Log("page has no texture - removing it. texture= " +page.texture);
+			screenBook.pages.Remove(page);
+			//pageIndex= pageIndex>0 ? pageIndex-- : 0 ;
+		}
+		if (screenBook.pages.Count==0) {Debug.LogWarning("<color=red>Book is Empty. Save Cancelled</color>"); return;}
+		if (screenBook.pages.Count==0) Debug.LogError("You should NEVER see this line!");
+		Debug.Log("Book not Empty. has: "+ screenBook.pages.Count.ToString());
 		BinaryFormatter bf = new BinaryFormatter ();
 		FileStream file = File.Create (Application.persistentDataPath + "/" + currentBookFileName);
 		BookData bookdata = new BookData ();
@@ -401,21 +466,22 @@ public class GUILogic : MonoBehaviour {
 			
 			PageData data = new PageData();
 			// check if audio.clip exist
+			//if (page.texture==null) {Debug.LogWarning("no photo for this page. skipping page"); return;}
 			if (page.clip != null) {
 				seralizeAudio (page.clip, out data.soundData, out data.clipName, out data.samples, out data.channels, out data.freq);
 				Debug.Log ("Serialized AudioClip");
 			} else {
-				Debug.Log ("No AudioClip for this page. Probably not recorded by user");
+				Debug.LogWarning ("No audio for page. Probably not recorded by user. saving anyway");
 			}
 			Debug.Log("page texture is: " + page.texture);
 			data.photoData = page.texture.EncodeToPNG()!=null ? page.texture.EncodeToPNG() : page.texture.EncodeToJPG();
 			bookdata._pages.Add(data);
 		}
-			bookdata.bookTitlePhotoData = bookdata._pages[0].photoData;
+		bookdata.bookTitlePhotoData = bookdata._pages[0].photoData;
 		bf.Serialize (file, bookdata);
 		file.Close ();
 		Debug.Log ("file saved: " + currentBookFileName);
-		Debug.Log ("## Save Method completed ##");
+		Debug.Log ("<color=green>## Save Method completed ##</color>");
 	}
 	public void load(){
 		Debug.Log("<< Load Method Began >>");
@@ -493,7 +559,7 @@ public class GUILogic : MonoBehaviour {
 		currentBookFileName = "PlayerInfo"+allPlayerFiles.Count.ToString("000")+".dat";
 		// save
 		if (!editorMode) toggleEditMode();
-		save();
+		//save();
 		mainCanvas.changeScreen(mainCanvas.editorScreen);
 	}
 // ###### SECTION END: UTILITY FUNCTIONS ##########
