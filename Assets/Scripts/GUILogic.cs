@@ -22,7 +22,7 @@ public class GUILogic : MonoBehaviour {
 	public ScreenManager mainCanvas;
 	public Texture2D newPageTexture;
 	public Sprite nextPageButtonTextureNormal, nextPageButtonTextureAddPage;
-	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton;
+	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, modalWindow;
 	public GameObject onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
 	public GameObject photoButtonContainer, recAudioButtonContainer;
 	public int pageIndex = 0;
@@ -31,6 +31,13 @@ public class GUILogic : MonoBehaviour {
 
 	public bool pageAudioPlayed=false, editorMode=false;
 
+	public void Hi(){
+		Debug.Log(" <color=green>@@@ Ding! Ding! Ding! @@@</color>");
+	}
+
+	void Awake(){
+		Debug.Log("<<< Awake method started >>>");
+	}
 	void Start () {
 		Debug.Log("<< GUILogic Start() Begun >>");
 		Debug.Log("current pageIndex is: " + pageIndex + ". resetting to 0");
@@ -368,9 +375,43 @@ public class GUILogic : MonoBehaviour {
 			Start();
 
 		}
-		
-
 	}
+	public void modalDeleteBook(string _name){
+		callModalWindow("YesNoDeleteBookBox", "deleteSavedBook", _name);
+	}
+	public void callModalWindow(string modalPanelToShow, string yesButtonMethodName, string yesButtonMethodParameter){
+		yesButtonMethodParameter = yesButtonMethodParameter==null ? "" : yesButtonMethodParameter;
+		Debug.Log("<<< callModalWindow func started >>>");
+		modalWindow.SetActive(true);
+		foreach (Transform t in modalWindow.transform){
+			if (t.gameObject.name.Contains(modalPanelToShow)) {
+				Debug.Log("modal window found: " + modalPanelToShow);
+				t.gameObject.SetActive(true);
+				//get all buttons
+				// if yes button add listener with delegate 
+				foreach (Button btn in t.gameObject.transform.GetComponentsInChildren<Button>()){
+					btn.onClick.RemoveAllListeners();
+					if (btn.name.Contains("YesButton")){
+						btn.onClick.AddListener(delegate{this.SendMessage(yesButtonMethodName, yesButtonMethodParameter);});
+						btn.onClick.AddListener(closeModalWindow);
+
+					} else {
+						//add the no button method here
+						btn.onClick.AddListener(closeModalWindow);
+					}
+					
+
+				}
+			} else { //not called panels are set to active=false
+				t.gameObject.SetActive(false);
+			}
+		}
+	}
+
+	void closeModalWindow(){
+		modalWindow.SetActive(false);
+	}
+
 	void createBookButtonList (){
 		if (allPlayerFiles.Count==0) {
 			Debug.Log("no saved files. count is zero");
@@ -405,9 +446,10 @@ public class GUILogic : MonoBehaviour {
 
 				}
 				if(t.gameObject.name.Contains("DeleteButton_Containter")){
+					if(_name.Contains("PlayerInfo00.dat")) {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
 					Debug.Log("Found the DeleteButton container");
 					t.gameObject.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
-					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{deleteSavedBook(_name);});
+					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{modalDeleteBook(_name);});
 					if (!editorMode) t.gameObject.SetActive(false);
 				}
 			}
