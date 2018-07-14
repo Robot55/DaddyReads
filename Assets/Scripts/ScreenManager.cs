@@ -41,12 +41,8 @@ public class ScreenManager : MonoBehaviour {
 		editorScreen.SetActive(screen==editorScreen ? true : false);
 		currentScreen=screen;
 		Debug.Log("current screen AFTER: " + currentScreen.name);
-		
-		//guiLogic.tmpAudio.clip =  null;
-		//guiLogic.pageAudioPlayed = false;
+	
 		guiLogic.SendMessage("initPageDisplay");
-		guiLogic.SendMessage("stopPlayback");
-		guiLogic.SendMessage("stopPageAudio");
 		guiLogic.SendMessage("Start");
 
 	}

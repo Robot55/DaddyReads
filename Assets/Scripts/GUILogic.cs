@@ -22,7 +22,9 @@ public class GUILogic : MonoBehaviour {
 	public ScreenManager mainCanvas;
 	public Texture2D newPageTexture;
 	public Sprite nextPageButtonTextureNormal, nextPageButtonTextureAddPage;
-	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
+	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton;
+	public GameObject onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
+	public GameObject photoButtonContainer, recAudioButtonContainer;
 	public int pageIndex = 0;
 
 	public float mobilePhotoResolution; // set in inspector
@@ -36,11 +38,7 @@ public class GUILogic : MonoBehaviour {
 		if (screenBook != null){
 			Debug.Log("book exists: " + screenBook);	
 			tmpAudio =  tmpAudio==null ? GetComponent<AudioSource> () : tmpAudio;
-			//bookPageDisplayImage = GameObject.FindWithTag("pagePlaceHolder").GetComponent<Image>();
-			//Debug.Log("bookPageDisplayImage found: " + bookPageDisplayImage);
 			mainCanvas = mainCanvas==null ? GameObject.FindWithTag("mainCanvas").GetComponent<ScreenManager>() : mainCanvas;
-			Debug.Log("mainCanvas found: " + mainCanvas + " | " + mainCanvas.gameObject.name);
-			Debug.Log("mainCanvas found: " + mainCanvas);
 			getBookFiles();
 			createBookButtonList();
 			setAutoPlayAudioState();
@@ -65,7 +63,7 @@ public class GUILogic : MonoBehaviour {
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen && mainCanvas.currentScreen.activeInHierarchy==true){
 			//if current screen is not HOME (I.E. Player OR Editor) and is active
 			//drawSprite();
-			setRecordButtonState();
+			//setRecordButtonState();
 			//setPlayButtonState();
 			//setAttachAudioButtonState();
 			setPlayPageAudioState();
@@ -132,35 +130,55 @@ public class GUILogic : MonoBehaviour {
 
 	void setTakePhotoButtonState(){
 		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
+		
 		ColorBlock cb;
 		cb=takePhotoButton.colors;
-		cb.normalColor= screenBook.pages[pageIndex].texture==null ? Color.red : Color.white;
+		Color transparentWhite= Color.white;
+		transparentWhite.a=0.6f;
+		cb.normalColor= screenBook.pages[pageIndex].texture==null ? Color.white : transparentWhite;
 		takePhotoButton.colors=cb;
+		photoButtonContainer.GetComponentInChildren<Text>().text= screenBook.pages[pageIndex].texture==null ? "Take Photo of Page" :"Re-Take Photo";
+
+	}
+
+	void setDeletePageButtonState(){
+		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
+		
+		ColorBlock cb;
+		cb=takePhotoButton.colors;
+		Color transparentWhite= Color.white;
+		transparentWhite.a=0.6f;
+		cb.normalColor= screenBook.pages[pageIndex].texture==null ? Color.white : transparentWhite;
+		takePhotoButton.colors=cb;
+		photoButtonContainer.GetComponentInChildren<Text>().text= screenBook.pages[pageIndex].texture==null ? "Take Photo of Page" :"Re-Take Photo";
+
 	}
 
 	void setRecordButtonState(){
 		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
 		if (screenBook.pages[pageIndex].texture==null){
-			recAudioButton.gameObject.SetActive(false);
+			recAudioButtonContainer.gameObject.SetActive(false);
 			return;
 		}
-		recAudioButton.gameObject.SetActive(true);
+		recAudioButtonContainer.gameObject.SetActive(true);
 		ColorBlock cb;
 		cb=recAudioButton.colors;
 		if (Microphone.IsRecording (null)) { //if Mic currently IS recording
 			//button should function as "end recording button"
-			recAudioButton.GetComponentInChildren<Text>().text="End Recording";
+			recAudioButtonContainer.GetComponentInChildren<Text>().text="End Recording";
 			recAudioButton.onClick.RemoveAllListeners();
 			recAudioButton.onClick.AddListener(recordAudioStop);
-			//set normal color to BLUE
-			cb.normalColor=Color.blue;
+			//set normal color to RED
+			cb.normalColor=Color.red;
 		} else {
 			// button should function as "start recording"
-			recAudioButton.GetComponentInChildren<Text>().text="RECORD Audio";
+			recAudioButtonContainer.GetComponentInChildren<Text>().text=screenBook.pages[pageIndex].clip==null? "Narrate this page" : "Re-Record Narration";
 			recAudioButton.onClick.RemoveAllListeners();
 			recAudioButton.onClick.AddListener(recordAudio);
-			//set normal color to RED or WHITE
-			cb.normalColor= screenBook.pages[pageIndex].clip==null ? Color.red : Color.white;
+			//set normal color to RED or HalfTransparentWHITE
+			Color transparentWhite = Color.white;
+			transparentWhite.a=0.6f;
+			cb.normalColor= screenBook.pages[pageIndex].clip==null ? Color.white : transparentWhite;
 		}
 		cb.highlightedColor=cb.normalColor;
 		recAudioButton.colors=cb;
@@ -171,11 +189,11 @@ public class GUILogic : MonoBehaviour {
 			playButton.interactable=true;	
 			if (tmpAudio.isPlaying) {	// Is recording currently being played?
 				// If yes - button should be a STOP playback button
-				playButton.GetComponentInChildren<Text>().text = "Stop";
+				//playButton.GetComponentInChildren<Text>().text = "Stop";
 				playButton.onClick.RemoveAllListeners();
 				playButton.onClick.AddListener(stopPlayback);
 			} else { // If No - make Play button
-				playButton.GetComponentInChildren<Text>().text = "Play";
+				//playButton.GetComponentInChildren<Text>().text = "Play";
 				playButton.onClick.RemoveAllListeners();
 				playButton.onClick.AddListener(playPlayback);
 			}
@@ -306,12 +324,15 @@ public class GUILogic : MonoBehaviour {
 	void initPageDisplay(){
 		if(tmpAudio.isPlaying) tmpAudio.Stop();
 		if(screenBook.curAudio.isPlaying) screenBook.curAudio.Stop();
+		stopPlayback();
+		stopPageAudio();
 		pageAudioPlayed=false;
 		setAutoPlayAudioState();
 
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen){
 			drawSprite();
 			setTakePhotoButtonState();
+			setRecordButtonState();
 			}
 	}
 	public void recordAudioStop(){
@@ -334,7 +355,22 @@ public class GUILogic : MonoBehaviour {
 		if (onScreenMessageContainer.GetComponentsInChildren<Text>().Length>0) return;
 		GameObject go=Instantiate(onScreenMessageTextPrefab, onScreenMessageContainer.transform.position, onScreenMessageContainer.transform.rotation, onScreenMessageContainer.transform);
 	}*/	
+	public void deleteSavedBook(string _name){
+		Debug.Log("<<< deleteSavedBook Func started >>>");
+		Debug.Log("Trying to DELETE book file: " + _name);
+		string filePath = Application.persistentDataPath + "/" + _name;
+		if (!File.Exists(filePath)){
+			Debug.LogWarning ("File: " + filePath + " can't be found");
+		} else {
+			File.Delete(filePath);
+			Debug.Log("File: " + _name + " deleted");
+			Debug.Log("Refreshing by running Start()");
+			Start();
 
+		}
+		
+
+	}
 	void createBookButtonList (){
 		if (allPlayerFiles.Count==0) {
 			Debug.Log("no saved files. count is zero");
@@ -349,18 +385,34 @@ public class GUILogic : MonoBehaviour {
 		{	
 			GameObject go;
 			go = Instantiate (fileNameButtonPrefab, fileListContainer.transform.position, fileListContainer.transform.rotation, fileListContainer.transform);
-			go.GetComponentInChildren<Text>().text = _name;
-			Sprite tmpSprite;
-			Texture2D tex=loadTitleTexture(_name);
-			tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
-			go.GetComponent<Image>().sprite=tmpSprite;
-			go.GetComponent<Button>().onClick.RemoveAllListeners();
-			if (!editorMode) go.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
-			if (editorMode) go.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
-			foreach (Image img in go.GetComponentsInChildren<Image>()){
-				if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
-				if (img.gameObject.name.Contains("editButton") && !editorMode) img.gameObject.SetActive(false);
+			
+			foreach (Transform t in go.transform){
+				if(t.gameObject.name.Contains("fileNameButton")){
+
+					Debug.Log("Found the Big fileNameButton");
+					t.gameObject.GetComponentInChildren<Text>().text = _name;
+					Sprite tmpSprite;
+					Texture2D tex=loadTitleTexture(_name);
+					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
+					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
+					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
+					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
+					foreach (Image img in t.gameObject.GetComponentsInChildren<Image>()){
+						if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
+						if (img.gameObject.name.Contains("editButton") && !editorMode) img.gameObject.SetActive(false);
+					}
+
+				}
+				if(t.gameObject.name.Contains("DeleteButton_Containter")){
+					Debug.Log("Found the DeleteButton container");
+					t.gameObject.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
+					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{deleteSavedBook(_name);});
+					if (!editorMode) t.gameObject.SetActive(false);
+				}
 			}
+
+
 			
 		}
 	}
@@ -496,6 +548,7 @@ public class GUILogic : MonoBehaviour {
 		file.Close ();
 		Debug.Log ("## Load Method completed ##");
 	}
+
 	public Texture2D loadTitleTexture(string bookFileName){
 		Debug.Log("<< Load Texture Method Began >>");
 		BinaryFormatter bf = new BinaryFormatter ();
@@ -545,7 +598,7 @@ public class GUILogic : MonoBehaviour {
 		if(editorMode) toggleEditMode(); 
 		mainCanvas.changeScreen(mainCanvas.homeScreen);
 	}
-	public void createNewBookAndSave(){
+	public void createNewBook(){
 		// currentBook should be newBookPrefab
 		GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
 		screenBook = newBook.GetComponent<Book>();
