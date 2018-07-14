@@ -75,8 +75,8 @@ public class GUILogic : MonoBehaviour {
 			//setPlayButtonState();
 			//setAttachAudioButtonState();
 			setPlayPageAudioState();
-			setNextPageButton();
-			setPrevPageButton();
+			//setNextPageButton();
+			//setPrevPageButton();
 		}
 		
 		
@@ -341,11 +341,15 @@ public class GUILogic : MonoBehaviour {
 		stopPageAudio();
 		pageAudioPlayed=false;
 		setAutoPlayAudioState();
+			
+
 
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen){
 			drawSprite();
 			setTakePhotoButtonState();
 			setRecordButtonState();
+			setNextPageButton();
+			setPrevPageButton();
 			}
 	}
 	public void recordAudioStop(){
