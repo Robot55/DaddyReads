@@ -24,7 +24,7 @@ public class GUILogic : MonoBehaviour {
 	public Sprite nextPageButtonTextureNormal, nextPageButtonTextureAddPage;
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, modalWindow;
 	public GameObject onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
-	public GameObject photoButtonContainer, recAudioButtonContainer;
+	public GameObject photoButtonContainer, recAudioButtonContainer, keypadInputText;
 	public int pageIndex = 0;
 
 	public float mobilePhotoResolution; // set in inspector
@@ -285,6 +285,11 @@ public class GUILogic : MonoBehaviour {
 		screenBook.curAudio.Stop ();
 	}
 	
+	public void keypadEntry(GameObject go){
+		keypadInputText.GetComponent<Text>().text += go.GetComponentInChildren<Text>().text;
+		Debug.Log("Trying to add: " + go.GetComponentInChildren<Text>().text + " to input field");
+	}
+	
 	public void toggleEditMode(){
 		//first toggle editor mode
 		editorMode = !editorMode; 
@@ -390,6 +395,7 @@ public class GUILogic : MonoBehaviour {
 				//get all buttons
 				// if yes button add listener with delegate 
 				foreach (Button btn in t.gameObject.transform.GetComponentsInChildren<Button>()){
+					if (btn.name.Contains("keyPadButton")){Debug.Log("Skipping keypadbutton"); return;}
 					btn.onClick.RemoveAllListeners();
 					if (btn.name.Contains("YesButton")){
 						btn.onClick.AddListener(delegate{this.SendMessage(yesButtonMethodName, yesButtonMethodParameter);});
@@ -408,6 +414,9 @@ public class GUILogic : MonoBehaviour {
 		}
 	}
 
+	public void callKidProofModal(){
+		callModalWindow("KidProofPanel", "Hi", "");
+	}
 	void closeModalWindow(){
 		modalWindow.SetActive(false);
 	}
