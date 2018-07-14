@@ -24,8 +24,9 @@ public class GUILogic : MonoBehaviour {
 	public Sprite nextPageButtonTextureNormal, nextPageButtonTextureAddPage;
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, modalWindow;
 	public GameObject onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
-	public GameObject photoButtonContainer, recAudioButtonContainer, keypadInputText;
+	public GameObject photoButtonContainer, recAudioButtonContainer, keypadInputText, kidProofRiddle;
 	public int pageIndex = 0;
+	public int kidProofRiddleValue = 99;
 
 	public float mobilePhotoResolution; // set in inspector
 
@@ -395,15 +396,19 @@ public class GUILogic : MonoBehaviour {
 				//get all buttons
 				// if yes button add listener with delegate 
 				foreach (Button btn in t.gameObject.transform.GetComponentsInChildren<Button>()){
-					if (btn.name.Contains("keyPadButton")){Debug.Log("Skipping keypadbutton"); return;}
+					
 					btn.onClick.RemoveAllListeners();
 					if (btn.name.Contains("YesButton")){
 						btn.onClick.AddListener(delegate{this.SendMessage(yesButtonMethodName, yesButtonMethodParameter);});
 						btn.onClick.AddListener(closeModalWindow);
 
 					} else {
-						//add the no button method here
-						btn.onClick.AddListener(closeModalWindow);
+						if (btn.name.Contains("YesButton")){ 
+							//add the no button method here
+							btn.onClick.AddListener(closeModalWindow);
+						} else {
+							if (btn.name.Contains("keyPadButton"))Debug.Log("Skipping keypadbutton"); 
+						}
 					}
 					
 
@@ -413,12 +418,44 @@ public class GUILogic : MonoBehaviour {
 			}
 		}
 	}
+	public void clearKeyPadInput(){
+		keypadInputText.GetComponent<Text>().text="";
+	}
+	public void undoLastKeypadEntry(){
+		string txt = keypadInputText.GetComponent<Text>().text;
+		txt=txt.Length>0 ? txt.Remove(txt.Length-1): txt;
+		keypadInputText.GetComponent<Text>().text=txt;
+
+	}
 
 	public void callKidProofModal(){
-		callModalWindow("KidProofPanel", "Hi", "");
+		if (editorMode) { //if already in editor mode - skip entire modal and toggle editor mode
+			toggleEditMode();
+			closeModalWindow();
+			return;
+		}
+		keypadInputText.GetComponent<Text>().text="";
+		generateKidProofRiddle();
+		callModalWindow("KidProofPanel", "replyRiddleAttempt", kidProofRiddleValue.ToString());
 	}
 	void closeModalWindow(){
 		modalWindow.SetActive(false);
+	}
+	void replyRiddleAttempt (string riddleString) {
+		Debug.Log("<<<replyRiddleAttempt func started>>>");
+		Debug.Log("checking if: "+ keypadInputText.GetComponent<Text>().text + " is equal to: "+ riddleString);
+		if (keypadInputText.GetComponent<Text>().text==riddleString) {
+			toggleEditMode();
+		}
+		closeModalWindow();
+	}
+
+	void generateKidProofRiddle(){
+		int int1 =  UnityEngine.Random.Range(2,20);
+		int int2 =  UnityEngine.Random.Range(2,20);
+		kidProofRiddle.GetComponent<Text>().text= "How much is " +int1.ToString() + " + " + int2.ToString()+ "?";
+		kidProofRiddleValue = int1+int2;
+
 	}
 
 	void createBookButtonList (){
