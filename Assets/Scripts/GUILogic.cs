@@ -71,7 +71,7 @@ public class GUILogic : MonoBehaviour {
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen && mainCanvas.currentScreen.activeInHierarchy==true){
 			//if current screen is not HOME (I.E. Player OR Editor) and is active
 			//drawSprite();
-			//setRecordButtonState();
+			setRecordButtonState();
 			//setPlayButtonState();
 			//setAttachAudioButtonState();
 			setPlayPageAudioState();
