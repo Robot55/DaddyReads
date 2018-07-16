@@ -31,6 +31,7 @@ public class ScreenManager : MonoBehaviour {
 		currentScreen = homeScreen;
 		Debug.Log ("currentScreen is: "+currentScreen);
 		guiLogic.modalWindow.SetActive(false);
+		guiLogic.loadingAnimationPanel.SetActive(false);
 	}
 
 	public void changeScreen (GameObject screen){
@@ -44,7 +45,7 @@ public class ScreenManager : MonoBehaviour {
 		Debug.Log("current screen AFTER: " + currentScreen.name);
 	
 		guiLogic.SendMessage("initPageDisplay");
-		guiLogic.SendMessage("Start");
+		if (currentScreen==homeScreen) guiLogic.SendMessage("Start");
 
 	}
 
