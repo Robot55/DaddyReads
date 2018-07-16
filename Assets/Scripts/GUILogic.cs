@@ -618,6 +618,7 @@ public class GUILogic : MonoBehaviour {
 		bookdata.bookTitlePhotoData = bookdata._pages[0].photoData;
 		bf.Serialize (file, bookdata);
 		file.Close ();
+		SavWav.Save("myweirdfile.wav", screenBook.pages[0].clip);
 		Debug.Log ("file saved: " + currentBookFileName);
 		Debug.Log ("<color=green>## Save Method completed ##</color>");
 	}
