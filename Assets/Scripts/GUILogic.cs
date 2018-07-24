@@ -14,7 +14,7 @@ using VoxelBusters.NativePlugins;
 public class GUILogic : MonoBehaviour {
 	//make public button vars and populate them in Inspector. used for changing functionality (addListener)
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage, daddyButton, takePhotoButton;
-	public string currentBookFileName = "PlayerBook";
+	public string currentBookFileName = "UserBook";
 	List<string> allPlayerFiles = new List<string>();
 	public AudioSource tmpAudio ;
 	public Book screenBook;
@@ -32,6 +32,7 @@ public class GUILogic : MonoBehaviour {
 	public float mobilePhotoResolution; // set in inspector
 
 	public bool pageAudioPlayed=false, editorMode=false;
+	SaveManager savemanager;
 
 	public void Hi(){
 		Debug.Log(" <color=green>@@@ Ding! Ding! Ding! @@@</color>");
@@ -39,12 +40,22 @@ public class GUILogic : MonoBehaviour {
 
 	void Awake(){
 		Debug.Log("<<< Awake method started >>>");
+		savemanager = this.gameObject.AddComponent<SaveManager>();
 	}
+
+	IEnumerator Example()
+    {
+        print(Time.time);
+        yield return new WaitForSeconds(5);
+        print(Time.time);
+		//StartCoroutine(Example());
+    }
 	void Start () {
+		//	StartCoroutine(Example());
 		//SaveManager saveManager = new SaveManager();
-		bool tbool = SaveManager.test();
-		Debug.Log(SaveManager.test().ToString());
-		Debug.Log("tbool = " + tbool.ToString());
+//		bool tbool = SaveManager.test();
+//		Debug.Log(SaveManager.test().ToString());
+//		Debug.Log("tbool = " + tbool.ToString());
 		Debug.Log("<< GUILogic Start() Begun >>");
 		Debug.Log("current pageIndex is: " + pageIndex + ". resetting to 0");
 		pageIndex = 0;
@@ -159,7 +170,9 @@ public class GUILogic : MonoBehaviour {
 
 	void setRecordButtonState(){
 		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
+		Debug.Log ("screenBook Length: " + screenBook.pages.Count + " pageIndex: " + pageIndex);
 		if (screenBook.pages[pageIndex].texture==null){
+
 			recAudioButtonContainer.gameObject.SetActive(false);
 			return;
 		}
@@ -508,7 +521,8 @@ public class GUILogic : MonoBehaviour {
 					Debug.Log("Found the Big fileNameButton");
 					t.gameObject.GetComponentInChildren<Text>().text = _name;
 					Sprite tmpSprite;
-					Texture2D tex=loadTitleTexture(_name);
+
+					Texture2D tex=savemanager.loadTitleTexture(_name);
 					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
@@ -521,7 +535,7 @@ public class GUILogic : MonoBehaviour {
 
 				}
 				if(t.gameObject.name.Contains("DeleteButton_Containter")){
-					if(_name.Contains("PlayerInfo00.dat")) {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
+					if(_name.Contains("UserBook00")) {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
 					Debug.Log("Found the DeleteButton container");
 					t.gameObject.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
 					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{modalDeleteBook(_name);});
@@ -604,8 +618,9 @@ public class GUILogic : MonoBehaviour {
 		return texture;
 	}
 
-	public void save(){
+	public void completeBookSave(){
 		Debug.Log("<< Save Method Began >>");
+		//SaveManager saveManager = new SaveManager();
 		Debug.Log("verifying book not empty");
 		if (screenBook.pages.Count==0) {Debug.LogWarning("<color=red>Book is Empty. Save Cancelled</color>"); return;}
 		List<SinglePage> emptyPages = new List<SinglePage>();
@@ -623,20 +638,25 @@ public class GUILogic : MonoBehaviour {
 		if (screenBook.pages.Count==0) {Debug.LogWarning("<color=red>Book is Empty. Save Cancelled</color>"); return;}
 		if (screenBook.pages.Count==0) Debug.LogError("You should NEVER see this line!");
 		Debug.Log("Book not Empty. has: "+ screenBook.pages.Count.ToString());
-		string currentFolderName = currentBookFileName;
-		if (!Directory.Exists(Application.persistentDataPath + "/" + currentFolderName)){
-			Directory.CreateDirectory(Application.persistentDataPath + "/" + currentFolderName);
-		}
+//		string currentFolderName = currentBookFileName;
+//		if (!Directory.Exists(Application.persistentDataPath + "/" + currentFolderName)){
+//			Directory.CreateDirectory(Application.persistentDataPath + "/" + currentFolderName);
+//		}
+
+
+		//SaveManager.createFolder(currentBookFileName, "result");
 		
 		BinaryFormatter bf = new BinaryFormatter ();
-		FileStream file = File.Create (Application.persistentDataPath + "/" + currentBookFileName + ".dat");
+		FileStream file = File.Create (Application.persistentDataPath + "/" + currentBookFileName+".dat");
 		BookData bookdata = new BookData ();
+		pageIndex = 0;
 		foreach (SinglePage page in screenBook.pages){
-			
+			savemanager.savePageImage (page.texture, currentBookFileName, pageIndex, "result");
 			PageData data = new PageData();
 			// check if audio.clip exist
 			//if (page.texture==null) {Debug.LogWarning("no photo for this page. skipping page"); return;}
 			if (page.clip != null) {
+				savemanager.savePageAudio (page.clip, currentBookFileName, pageIndex, "result");
 				seralizeAudio (page.clip, out data.soundData, out data.clipName, out data.samples, out data.channels, out data.freq);
 				Debug.Log ("Serialized AudioClip");
 			} else {
@@ -645,18 +665,19 @@ public class GUILogic : MonoBehaviour {
 			Debug.Log("page texture is: " + page.texture);
 			data.photoData = page.texture.EncodeToPNG()!=null ? page.texture.EncodeToPNG() : page.texture.EncodeToJPG();
 			bookdata._pages.Add(data);
+			pageIndex++;
 		}
 		bookdata.bookTitlePhotoData = bookdata._pages[0].photoData;
 		bf.Serialize (file, bookdata);
 		file.Close ();
-		SavWav.Save("myweirdfile.wav", screenBook.pages[0].clip);
+		//SavWav.Save("myweirdfile.wav", screenBook.pages[0].clip);
 		Debug.Log ("file saved: " + currentBookFileName);
 		Debug.Log ("<color=green>## Save Method completed ##</color>");
 	}
 	public void load(){
 		Debug.Log("<< Load Method Began >>");
 		BinaryFormatter bf = new BinaryFormatter ();
-		FileStream file = File.Open (Application.persistentDataPath + "/" +currentBookFileName, FileMode.Open);
+		FileStream file = File.Open (Application.persistentDataPath + "/" +currentBookFileName+".dat", FileMode.Open);
 		BookData bookData = (BookData)bf.Deserialize (file);
 		screenBook.pages.Clear();
 		screenBook.pages.TrimExcess();
@@ -677,7 +698,7 @@ public class GUILogic : MonoBehaviour {
 	public Texture2D loadTitleTexture(string bookFileName){
 		Debug.Log("<< Load Texture Method Began >>");
 		BinaryFormatter bf = new BinaryFormatter ();
-		FileStream file = File.Open (Application.persistentDataPath + "/" +bookFileName, FileMode.Open);
+		FileStream file = File.Open (Application.persistentDataPath + "/" + bookFileName, FileMode.Open);
 		BookData bookData = (BookData)bf.Deserialize (file);
 		file.Close ();
 		Debug.Log ("## Load Texture Method completed ##");
@@ -686,31 +707,31 @@ public class GUILogic : MonoBehaviour {
 	void getBookFiles(){
 		Debug.Log("<< GetBookFiles Started >>");
 		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
-		FileInfo[] info = dir.GetFiles("Player*.*");
-		Debug.Log("FileInfo Count: "+ info.Length.ToString());
-		if (info.Length==0){
-			Debug.Log("no saved files in user device. saving demo Book now");
-			currentBookFileName = "PlayerInfo00.dat";
-			save();
-			info = dir.GetFiles("Player*.dat");
-			Debug.Log("FileInfo Count: "+ info.Length.ToString());
+		DirectoryInfo[] bookFolders = dir.GetDirectories("UserBook*");
+		Debug.Log("bookFolders Count: "+ bookFolders.Length.ToString());
+		if (bookFolders.Length==0){
+			Debug.Log("no saved books in user device. saving demo Book now");
+			currentBookFileName = "UserBook00";
+			completeBookSave();
+			bookFolders = dir.GetDirectories("UserBook*");
+			Debug.Log("FileInfo Count: "+ bookFolders.Length.ToString());
 		}
 		Debug.Log("Player Saved File List Count at beginning: " + allPlayerFiles.Count);
 		//clean the allPlayerFiles list so func can be used multiple time at runtime
 		allPlayerFiles.Clear();
 		allPlayerFiles.TrimExcess();
 		Debug.Log("Player Saved File List Count after cleaning (should be 0): " + allPlayerFiles.Count);
-		foreach (FileInfo f in info)
+		foreach (DirectoryInfo d in bookFolders)
 		{
-				Debug.Log("FileInfo File Full Name: " + f.FullName);
-				Debug.Log("FileInfo File Name: " + f.Name);
-				allPlayerFiles.Add(f.Name);
+				Debug.Log("DirInfo File Full Name: " + d.FullName);
+				Debug.Log("DirInfo File Name: " + d.Name);
+				allPlayerFiles.Add(d.Name);
 		}
 		Debug.Log("Player Saved File List Count after populating: " + allPlayerFiles.Count);
 	}
 	void createDemoBookAndSave (){
-		currentBookFileName = "PlayerBook00.dat";
-		save();
+		currentBookFileName = "PlayerBook00";
+		completeBookSave();
 	}
 	public void backButtonClicked(){
 		if (mainCanvas.currentScreen!=mainCanvas.editorScreen) {
@@ -719,7 +740,7 @@ public class GUILogic : MonoBehaviour {
 			return;
 			}
 		Debug.LogWarning("Attempting auto-save on back button"); 
-		save();  
+		completeBookSave();  
 		Debug.LogWarning("<color=green>auto-save complete</color>"); 
 		if(editorMode) toggleEditMode(); 
 		mainCanvas.changeScreen(mainCanvas.homeScreen);
@@ -730,7 +751,7 @@ public class GUILogic : MonoBehaviour {
 		Destroy(screenBook.gameObject);
 		screenBook = newBook.GetComponent<Book>();
 		// set filename to FileInfo.count+1
-		currentBookFileName = "PlayerInfo"+allPlayerFiles.Count.ToString("000");
+		currentBookFileName = "UserBook"+allPlayerFiles.Count.ToString("000");
 		// save
 		if (!editorMode) toggleEditMode();
 		//save();

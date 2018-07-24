@@ -33,13 +33,11 @@ public static class SavWav {
 
 	const int HEADER_SIZE = 44;
 
-	public static bool Save(string filename, AudioClip clip) {
-		var filepath = Path.Combine(Application.persistentDataPath, filename);
 
-		// Make sure directory exists if user is saving to sub dir.
-		Directory.CreateDirectory(Path.GetDirectoryName(filepath));
 
-		using (var fileStream = new FileStream(filepath, FileMode.Create)) {
+	public static bool Save(string pathToFile, AudioClip clip) {
+		
+		using (var fileStream = new FileStream(pathToFile, FileMode.Create)) {
 			// ヘッダデータは後で記述するのでヘッダサイズ分シークする
 			fileStream.Seek(HEADER_SIZE, SeekOrigin.Begin);
 			MemoryStream memStream = new MemoryStream();
@@ -50,6 +48,27 @@ public static class SavWav {
 
 		return true; // TODO: return false if there's a failure saving the file
 	}
+
+//	public static bool Save(string filename, AudioClip clip) {
+//		var filepath = Path.Combine(Application.persistentDataPath, filename);
+//
+//		// Make sure directory exists if user is saving to sub dir.
+//		Directory.CreateDirectory(Path.GetDirectoryName(filepath));
+//
+//		using (var fileStream = new FileStream(filepath, FileMode.Create)) {
+//			// ヘッダデータは後で記述するのでヘッダサイズ分シークする
+//			fileStream.Seek(HEADER_SIZE, SeekOrigin.Begin);
+//			MemoryStream memStream = new MemoryStream();
+//			ConvertAndWrite(memStream, clip);
+//			memStream.WriteTo(fileStream);
+//			WriteHeader(fileStream, clip);
+//		}
+//
+//		return true; // TODO: return false if there's a failure saving the file
+//	}
+
+
+
 
 	public static AudioClip TrimSilence(AudioClip clip, float min) {
 		var samples = new float[clip.samples];
