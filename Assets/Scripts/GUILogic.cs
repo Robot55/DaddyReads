@@ -283,7 +283,7 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log("Reason = " + _reason);
 		Debug.Log("Texture = " + _image);
 
-		screenBook.pages[pageIndex].texture = smartScale(_image);
+		screenBook.pages[pageIndex].texture = _image;
 		savemanager.savePageImage (screenBook.pages [pageIndex].texture, currentBookFileName, pageIndex, "");
 		initPageDisplay();
 	}
@@ -701,13 +701,27 @@ public class GUILogic : MonoBehaviour {
 		screenBook.pages.Clear();
 		int stash = pageIndex;
 		pageIndex = 0;
+		print ("before loading time: " + Time.time);
 		foreach (DirectoryInfo pageFolder in pagesInBook) {
 			SinglePage newPage = new SinglePage ();
-			newPage.texture = savemanager.loadPageImage (currentBookFileName, pageIndex);
-			newPage.clip = savemanager.loadPageAudio (currentBookFileName, pageIndex);
+			if (ES2.Exists(currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.R55")){
+				print ("time before audioclip load: " + Time.time);
+				newPage.clip = ES2.Load<AudioClip> (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.R55");
+				print ("time after audioclip load: " + Time.time);
+			}
+			if (ES2.Exists (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.R55")) {
+				print ("time before photo load: " + Time.time);
+				newPage.texture = ES2.Load<Texture2D> (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.R55");
+				print ("time after photo load: " + Time.time);
+			}
+
+			//newPage.texture = savemanager.loadPageImage (currentBookFileName, pageIndex);
+			//newPage.clip = savemanager.loadPageAudio (currentBookFileName, pageIndex);
 			screenBook.pages.Add (newPage);
 			pageIndex++;
 		}
+		print ("after loading time: " + Time.time);
+
 		pageIndex = stash;
 
 

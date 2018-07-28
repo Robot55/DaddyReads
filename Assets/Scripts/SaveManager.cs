@@ -27,7 +27,6 @@ public class SaveManager : MonoBehaviour {
 		string photoFileName = "pagePhoto.R55";
 		string pathToFile = Path.Combine (pageFolderPath, photoFileName);
 		Debug.Log ("pathTofile is: " + pathToFile);
-
 		ES2.Save (pageTexture, pathToFile);
 	}
 
@@ -48,7 +47,7 @@ public class SaveManager : MonoBehaviour {
 		string pathToFile = Path.Combine (pageFolderPath, photoFileName);
 		Debug.Log ("pathToFile: " + pathToFile);
 		if (ES2.Exists (pathToFile)) {
-			Debug.Log ("## Load Texture Method completed ##");
+			Debug.Log ("## ES2.Load Begins ## Time: " + Time.time);
 			return ES2.Load<Texture2D> (pathToFile);
 		} else {
 			Debug.Log ("Texture path doesn't exist: " + pathToFile);
