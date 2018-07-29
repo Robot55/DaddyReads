@@ -9,11 +9,8 @@ using VoxelBusters.NativePlugins;
 
 public class SaveManager : MonoBehaviour {
 
-	private static string rootFolder;
-	//private static string rootFolder = Application.persistentDataPath;
-	// Use this for initialization
+	public SaveLoadWav wavSave = new SaveLoadWav ();
 	void Awake () {
-		rootFolder = Application.persistentDataPath;
 	}
 	// Update is called once per frame
 	void _onCompletion(bool onCompletion){
@@ -24,26 +21,35 @@ public class SaveManager : MonoBehaviour {
 		Debug.Log ("<<< SaveMAnager.savePageImage started >>>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-		string photoFileName = "pagePhoto.R55";
+		string photoFileName = "pagePhoto";
 		string pathToFile = Path.Combine (pageFolderPath, photoFileName);
 		Debug.Log ("pathTofile is: " + pathToFile);
 		ES2.Save (pageTexture, pathToFile);
 	}
 
+//	public void savePageAudio(AudioClip clip, string currentBookFileName, int pageIndex, string _result) {
+//		Debug.Log ("<<< SaveMAnager.savePageAudio started >>>");
+//		string bookFolderPath = currentBookFileName;
+//		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
+//		string audioFileName = "pageAudio.R55";
+//		string pathToFile = Path.Combine (pageFolderPath, audioFileName);
+//		ES2.Save (clip, pathToFile);
+//	}
+
 	public void savePageAudio(AudioClip clip, string currentBookFileName, int pageIndex, string _result) {
 		Debug.Log ("<<< SaveMAnager.savePageAudio started >>>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-		string audioFileName = "pageAudio.R55";
+		string audioFileName = "pageAudio";
 		string pathToFile = Path.Combine (pageFolderPath, audioFileName);
+		wavSave.Save (pathToFile, clip);
 		ES2.Save (clip, pathToFile);
 	}
-
 	public Texture2D loadPageImage(string currentBookFileName, int pageIndex){
 		Debug.Log("<< Load Texture Method Began >>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-		string photoFileName = "pagePhoto.R55";
+		string photoFileName = "pagePhoto";
 		string pathToFile = Path.Combine (pageFolderPath, photoFileName);
 		Debug.Log ("pathToFile: " + pathToFile);
 		if (ES2.Exists (pathToFile)) {
@@ -59,7 +65,7 @@ public class SaveManager : MonoBehaviour {
 		Debug.Log("<< Load Audio Method Began >>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-		string audioFileName = "pageAudio.R55";
+		string audioFileName = "pageAudio";
 		string pathToFile = Path.Combine (pageFolderPath, audioFileName);
 		Debug.Log ("pathToFile: " + pathToFile);
 		if (ES2.Exists (pathToFile)) {

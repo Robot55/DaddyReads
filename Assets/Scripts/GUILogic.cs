@@ -697,14 +697,14 @@ public class GUILogic : MonoBehaviour {
 		print ("before loading time: " + Time.time);
 		foreach (DirectoryInfo pageFolder in pagesInBook) {
 			SinglePage newPage = new SinglePage ();
-			if (ES2.Exists(currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.R55")){
+			if (ES2.Exists(currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio")){
 				print ("time before audioclip load: " + Time.time);
-				newPage.clip = ES2.Load<AudioClip> (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.R55");
+				newPage.clip = ES2.Load<AudioClip> (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio");
 				print ("time after audioclip load: " + Time.time);
 			}
-			if (ES2.Exists (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.R55")) {
+			if (ES2.Exists (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto")) {
 				print ("time before photo load: " + Time.time);
-				newPage.texture = ES2.Load<Texture2D> (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.R55");
+				newPage.texture = ES2.Load<Texture2D> (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto");
 				print ("time after photo load: " + Time.time);
 			}
 
