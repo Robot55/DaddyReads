@@ -56,12 +56,14 @@ public class SaveLoadWav {
 		if(!String.IsNullOrEmpty(filename) && audioSource != null){
 			string path = GetPath(filename);
 
-			if(File.Exists(path))
-			{
-				WWW www = new WWW("file:" + path);
+			if (File.Exists (path)) {
+				Debug.Log ("savWav Loading: file exists!!!");
+				WWW www = new WWW ("file:" + path);
 				yield return www;
-				audioSource.clip = www.GetAudioClip(false, false, AudioType.WAV);
+				audioSource.clip = www.GetAudioClip (false, false, AudioType.WAV);
 				audioSource.clip.name = filename;
+			} else {
+				Debug.Log ("savWav loading: file not exists or path wrong: " + path);
 			}
 		}
 		yield break;

@@ -242,6 +242,7 @@ public class GUILogic : MonoBehaviour {
 
 	}
 	void setPlayPageAudioState (){
+		//Debug.Log (screenBook.pages [pageIndex].clip == null ? "page: " + pageIndex + " clip is null" : "clip load status: " + screenBook.pages [pageIndex].clip.loadState);
 		if (screenBook.pages[pageIndex].clip != null){
 			playButtonOnImage.gameObject.SetActive(true);
 			if (screenBook.curAudio.isPlaying) {	
@@ -688,54 +689,19 @@ public class GUILogic : MonoBehaviour {
 		// get all directories in currentbookfilename folder
 		DirectoryInfo dir = new DirectoryInfo(Path.Combine(Application.persistentDataPath, currentBookFileName));
 		DirectoryInfo[] pagesInBook = dir.GetDirectories("Page_*");
-		//GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
-		//Destroy(screenBook.gameObject);
-		//screenBook = newBook.GetComponent<Book>();
 		screenBook.pages.Clear();
 		int stash = pageIndex;
 		pageIndex = 0;
 		print ("before loading time: " + Time.time);
 		foreach (DirectoryInfo pageFolder in pagesInBook) {
 			SinglePage newPage = new SinglePage ();
-			if (ES2.Exists(currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio")){
-				print ("time before audioclip load: " + Time.time);
-				newPage.clip = ES2.Load<AudioClip> (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio");
-				print ("time after audioclip load: " + Time.time);
-			}
-			if (ES2.Exists (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto")) {
-				print ("time before photo load: " + Time.time);
-				newPage.texture = ES2.Load<Texture2D> (currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto");
-				print ("time after photo load: " + Time.time);
-			}
-
-			//newPage.texture = savemanager.loadPageImage (currentBookFileName, pageIndex);
-			//newPage.clip = savemanager.loadPageAudio (currentBookFileName, pageIndex);
+			newPage.texture = savemanager.loadPageImage (currentBookFileName, pageIndex);
+			newPage.clip = savemanager.loadPageAudio (currentBookFileName, pageIndex, screenBook.curAudio );
 			screenBook.pages.Add (newPage);
 			pageIndex++;
 		}
 		print ("after loading time: " + Time.time);
-
 		pageIndex = stash;
-
-
-
-
-		//BinaryFormatter bf = new BinaryFormatter ();
-		//FileStream file = File.Open (Application.persistentDataPath + "/" +currentBookFileName+".dat", FileMode.Open);
-		//BookData bookData = (BookData)bf.Deserialize (file);
-		//screenBook.pages.Clear();
-		//screenBook.pages.TrimExcess();
-		//screenBook.bookTitleTexture = deserializePhoto (bookData.bookTitlePhotoData);
-		/*for (int i=0; i < bookData._pages.Count; i++){
-			PageData page = bookData._pages[i];
-			SinglePage newPage = new SinglePage ();
-			if (page.soundData != null){
-				newPage.clip = deseralizeAudio (page.soundData, page.clipName, page.samples, page.channels, page.freq);
-			}
-			newPage.texture = deserializePhoto (page.photoData);
-			screenBook.pages.Add (newPage);
-		}
-		file.Close ();*/
 		Debug.Log ("## Load Method completed ##");
 	}
 
@@ -778,14 +744,6 @@ public class GUILogic : MonoBehaviour {
 		completeBookSave();
 	}
 	public void backButtonClicked(){
-		if (mainCanvas.currentScreen!=mainCanvas.editorScreen) {
-			Debug.LogWarning("auto-save attempt denied");
-			mainCanvas.changeScreen(mainCanvas.homeScreen);
-			return;
-			}
-		Debug.LogWarning("Attempting auto-save on back button"); 
-		//completeBookSave();  
-		Debug.LogWarning("<color=green>auto-save complete</color>"); 
 		if(editorMode) toggleEditMode(); 
 		mainCanvas.changeScreen(mainCanvas.homeScreen);
 	}

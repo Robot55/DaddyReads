@@ -27,23 +27,14 @@ public class SaveManager : MonoBehaviour {
 		ES2.Save (pageTexture, pathToFile);
 	}
 
-//	public void savePageAudio(AudioClip clip, string currentBookFileName, int pageIndex, string _result) {
-//		Debug.Log ("<<< SaveMAnager.savePageAudio started >>>");
-//		string bookFolderPath = currentBookFileName;
-//		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-//		string audioFileName = "pageAudio.R55";
-//		string pathToFile = Path.Combine (pageFolderPath, audioFileName);
-//		ES2.Save (clip, pathToFile);
-//	}
-
 	public void savePageAudio(AudioClip clip, string currentBookFileName, int pageIndex, string _result) {
 		Debug.Log ("<<< SaveMAnager.savePageAudio started >>>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-		string audioFileName = "pageAudio";
+		string audioFileName = "pageAudio.wav";
 		string pathToFile = Path.Combine (pageFolderPath, audioFileName);
 		wavSave.Save (pathToFile, clip);
-		ES2.Save (clip, pathToFile);
+		//ES2.Save (clip, pathToFile);
 	}
 	public Texture2D loadPageImage(string currentBookFileName, int pageIndex){
 		Debug.Log("<< Load Texture Method Began >>");
@@ -61,16 +52,17 @@ public class SaveManager : MonoBehaviour {
 		}
 	}
 
-	public AudioClip loadPageAudio(string currentBookFileName, int pageIndex){
+	public AudioClip loadPageAudio(string currentBookFileName, int pageIndex, AudioSource audio){
 		Debug.Log("<< Load Audio Method Began >>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-		string audioFileName = "pageAudio";
+		string audioFileName = "pageAudio.wav";
 		string pathToFile = Path.Combine (pageFolderPath, audioFileName);
 		Debug.Log ("pathToFile: " + pathToFile);
 		if (ES2.Exists (pathToFile)) {
-			Debug.Log ("## Load Audio Method completed ##");
-			return ES2.Load<AudioClip> (pathToFile);
+			Debug.Log ("## Audio File Exists! Trying to load now ##");
+			return ES3.LoadAudio (pathToFile);
+
 		} else {
 			Debug.Log ("Audio-File path doesn't exist: " + pathToFile);
 			return null;
