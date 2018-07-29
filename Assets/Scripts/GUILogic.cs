@@ -50,14 +50,7 @@ public class GUILogic : MonoBehaviour {
 		print(Time.time);
 		//StartCoroutine(Example());
 	}
-
-	IEnumerator Example2()
-    {
-        print(Time.time);
-        yield return new WaitForSeconds(5);
-        print(Time.time);
-		//StartCoroutine(Example());
-    }
+		
 	void Start () {
 		//	StartCoroutine(Example());
 		//SaveManager saveManager = new SaveManager();
