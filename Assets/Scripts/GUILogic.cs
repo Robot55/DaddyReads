@@ -26,12 +26,13 @@ public class GUILogic : MonoBehaviour {
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, modalWindow;
 	public GameObject onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
 	public GameObject photoButtonContainer, recAudioButtonContainer, keypadInputText, kidProofRiddle, loadingAnimationPanel;
+	public GameObject sagiTest;
 	public int pageIndex = 0;
 	public int kidProofRiddleValue = 99;
 
 	public float mobilePhotoResolution; // set in inspector
 
-	public bool pageAudioPlayed=false, editorMode=false;
+	public bool pageAudioPlayed=false, editorMode=false, isLoading=false;
 	SaveManager savemanager;
 
 	public void Hi(){
@@ -41,14 +42,26 @@ public class GUILogic : MonoBehaviour {
 	void Awake(){
 		Debug.Log("<<< Awake method started >>>");
 		savemanager = this.gameObject.AddComponent<SaveManager>();
+
 	}
 
-	IEnumerator Example()
+	IEnumerator Exampler(GameObject go)
 	{
 		print(Time.time);
-		yield return new WaitForSeconds(5);
+		sagiTest.SetActive (true);
+		loadAndPlayBook(go);
+		//yield return new WaitForSeconds(5);
+		//sagiTest.SetActive (false);
+
 		print(Time.time);
 		//StartCoroutine(Example());
+		yield return null;
+	}
+
+	IEnumerator toggleLoadinganimation()
+	{
+		loadingAnimationPanel.SetActive (!loadingAnimationPanel.activeInHierarchy);
+		yield return null;
 	}
 		
 	void Start () {
@@ -93,6 +106,10 @@ public class GUILogic : MonoBehaviour {
 // ###### SECTION START: UPDATE FUNCTION METHODS ##########
 
 	void drawSprite () {
+		if (isLoading) {
+			print ("drawSprite started");
+			//StartCoroutine(toggleLoadinganimation ());
+		}
 		Sprite tmpSprite;
 		Texture2D tex;
 		if(screenBook.pages[pageIndex].texture==null){
@@ -321,7 +338,11 @@ public class GUILogic : MonoBehaviour {
 	}
 	void playPageAudio(){
 		screenBook.curAudio.clip = screenBook.pages[pageIndex].clip;
+		print ("playPageAudio: audio.clip.isPlaying: " +screenBook.curAudio.isPlaying + " " +Time.time);
+		print ("playPageAudio is ready: " + screenBook.curAudio.clip.loadState);
 		screenBook.curAudio.Play();
+		print ("playPageAudio: audio.clip.isPlaying: " +screenBook.curAudio.isPlaying + " " +Time.time);
+
 		pageAudioPlayed=true;
 	}
 	void stopPageAudio(){
@@ -531,8 +552,10 @@ public class GUILogic : MonoBehaviour {
 					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
-					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
+					//if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(Example(go));});
+					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndPlayBook(go));});
 					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
+	
 					foreach (Image img in t.gameObject.GetComponentsInChildren<Image>()){
 						if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
 						if (img.gameObject.name.Contains("editButton") && !editorMode) img.gameObject.SetActive(false);
@@ -565,17 +588,21 @@ public class GUILogic : MonoBehaviour {
 			//tell ui to change into editor mode
 			mainCanvas.changeScreen(mainCanvas.editorScreen);
 	}
-	void loadAndPlayBook (GameObject go) { //for onClick button
-			Debug.Log("<<< loadAnPlayBook func started >>>");
-			Debug.Log("gameObject is: " + go.name);
-			Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
-			//set global filename for load/save
-			currentBookFileName = go.GetComponentInChildren<Text>().text;
-			//call load()
-		completeBookLoad();
+	IEnumerator loadAndPlayBook (GameObject go) { //for onClick button
+		Debug.Log("<<< loadAnPlayBook func started >>>");
+		//loadingAnimationPanel.SetActive (true);
+		//StartCoroutine (toggleLoadinganimation ());
+		Debug.Log("gameObject is: " + go.name);
+		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+		//set global filename for load/save
+		currentBookFileName = go.GetComponentInChildren<Text>().text;
+		//call load()
+		yield return StartCoroutine(toggleLoadinganimation());
+		yield return StartCoroutine(completeBookLoad());
+		yield return StartCoroutine(toggleLoadinganimation());
 		pageIndex = 0;
-			//tell ui to change into editor mode
-			mainCanvas.changeScreen(mainCanvas.playerScreen);
+		//tell ui to change into editor mode
+		mainCanvas.changeScreen(mainCanvas.playerScreen);
 	}
 
 
@@ -683,8 +710,10 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log ("file saved: " + currentBookFileName);
 		Debug.Log ("<color=green>## Save Method completed ##</color>");
 	}
-	public void completeBookLoad(){
+	public IEnumerator completeBookLoad(){
 		Debug.Log("<< Load Method Began >>");
+		//sagiTest.SetActive(true);
+		//isLoading = true;
 		// get all directories in currentbookfilename folder
 		DirectoryInfo dir = new DirectoryInfo(Path.Combine(Application.persistentDataPath, currentBookFileName));
 		DirectoryInfo[] pagesInBook = dir.GetDirectories("Page_*");
@@ -704,6 +733,7 @@ public class GUILogic : MonoBehaviour {
 		print ("after loading time: " + Time.time);
 		pageIndex = stash;
 		Debug.Log ("## Load Method completed ##");
+		yield return null;
 	}
 
 	public Texture2D loadTitleTexture(string bookFileName){
