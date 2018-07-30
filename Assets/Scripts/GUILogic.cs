@@ -696,7 +696,9 @@ public class GUILogic : MonoBehaviour {
 		foreach (DirectoryInfo pageFolder in pagesInBook) {
 			SinglePage newPage = new SinglePage ();
 			newPage.texture = savemanager.loadPageImage (currentBookFileName, pageIndex);
+			Debug.Log ("Page#"+pageIndex+ " texture load method returned! " + Time.time);
 			newPage.clip = savemanager.loadPageAudio (currentBookFileName, pageIndex, screenBook.curAudio );
+			Debug.Log ("Page#"+pageIndex+ " audio load method returned! " + Time.time);
 			screenBook.pages.Add (newPage);
 			pageIndex++;
 		}

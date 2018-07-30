@@ -21,10 +21,10 @@ public class SaveManager : MonoBehaviour {
 		Debug.Log ("<<< SaveMAnager.savePageImage started >>>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-		string photoFileName = "pagePhoto";
+		string photoFileName = "pagePhoto.png";
 		string pathToFile = Path.Combine (pageFolderPath, photoFileName);
 		Debug.Log ("pathTofile is: " + pathToFile);
-		ES2.Save (pageTexture, pathToFile);
+		ES3.SaveImage (pageTexture, pathToFile);
 	}
 
 	public void savePageAudio(AudioClip clip, string currentBookFileName, int pageIndex, string _result) {
@@ -40,12 +40,13 @@ public class SaveManager : MonoBehaviour {
 		Debug.Log("<< Load Texture Method Began >>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
-		string photoFileName = "pagePhoto";
+		string photoFileName = "pagePhoto.png";
 		string pathToFile = Path.Combine (pageFolderPath, photoFileName);
 		Debug.Log ("pathToFile: " + pathToFile);
 		if (ES2.Exists (pathToFile)) {
 			Debug.Log ("## ES2.Load Begins ## Time: " + Time.time);
-			return ES2.Load<Texture2D> (pathToFile);
+			return ES3.LoadImage (pathToFile);
+			//return ES2.Load<Texture2D> (pathToFile);
 		} else {
 			Debug.Log ("Texture path doesn't exist: " + pathToFile);
 			return null;
