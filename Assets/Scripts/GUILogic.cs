@@ -443,14 +443,13 @@ public class GUILogic : MonoBehaviour {
 				//get all buttons
 				// if yes button add listener with delegate 
 				foreach (Button btn in t.gameObject.transform.GetComponentsInChildren<Button>()){
-					
 					btn.onClick.RemoveAllListeners();
 					if (btn.name.Contains("YesButton")){
 						btn.onClick.AddListener(delegate{this.SendMessage(yesButtonMethodName, yesButtonMethodParameter);});
 						btn.onClick.AddListener(closeModalWindow);
 
 					} else {
-						if (btn.name.Contains("YesButton")){ 
+						if (btn.name.Contains("NoButton")){ 
 							//add the no button method here
 							btn.onClick.AddListener(closeModalWindow);
 						} else {

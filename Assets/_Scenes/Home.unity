@@ -163,7 +163,7 @@ Prefab:
     - target: {fileID: 224553866763221410, guid: 8ddec95d089c85847b845d53be38743b,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: -100
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224553866763221410, guid: 8ddec95d089c85847b845d53be38743b,
         type: 2}
@@ -173,7 +173,7 @@ Prefab:
     - target: {fileID: 224553866763221410, guid: 8ddec95d089c85847b845d53be38743b,
         type: 2}
       propertyPath: m_SizeDelta.y
-      value: 180
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224553866763221410, guid: 8ddec95d089c85847b845d53be38743b,
         type: 2}
@@ -8972,16 +8972,16 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 33
+    m_FontSize: 48
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 49
+    m_MinSize: 4
+    m_MaxSize: 55
     m_Alignment: 0
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: Deleting a book removes it permanently and it can not be recovered
 --- !u!222 &2051038042
