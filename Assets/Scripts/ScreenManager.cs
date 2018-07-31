@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class ScreenManager : MonoBehaviour {
 	public GameObject homeScreen, editorScreen, playerScreen;
-	public GameObject currentScreen;
+	public GameObject currentScreen, afterLoadingDoneScreen;
 	public GUILogic guiLogic;
 	// Use this for initialization
 	void Start () {
@@ -31,7 +31,7 @@ public class ScreenManager : MonoBehaviour {
 		currentScreen = homeScreen;
 		Debug.Log ("currentScreen is: "+currentScreen);
 		guiLogic.modalWindow.SetActive(false);
-		//guiLogic.loadingAnimationPanel.SetActive(false);
+		guiLogic.loadingAnimationPanel.SetActive(false);
 	}
 
 	public void changeScreen (GameObject screen){

@@ -112,9 +112,7 @@ public class GUILogic : MonoBehaviour {
 				Debug.Log ("Page#" + loadingPageIndex + " texture load method returned! " + Time.time);
 				newPage.clip = savemanager.loadPageAudio (currentBookFileName, loadingPageIndex);
 				Debug.Log ("Page#" + loadingPageIndex + " audio load method returned! " + Time.time);
-				print ("foo");
 				screenBook.pages.Add (newPage);
-				print ("bar");
 				loadingPageIndex++;
 			} else {
 				isLoading = false;
@@ -122,9 +120,10 @@ public class GUILogic : MonoBehaviour {
 				Debug.Log ("loading finished. pageindex=" + pageIndex + ". pagesinBookLastIndex=" + (pagesInBook.Length - 1).ToString());
 				Debug.Log ("screenbook pages: " + screenBook.pages.Count);
 				pageIndex = 0;
+				StartCoroutine(toggleLoadinganimation());
 				//tell ui to change into editor mode
-				if (mainCanvas.currentScreen!=mainCanvas.playerScreen){
-					mainCanvas.changeScreen(mainCanvas.playerScreen);
+				if (mainCanvas.currentScreen==mainCanvas.homeScreen	){
+					mainCanvas.changeScreen(mainCanvas.afterLoadingDoneScreen);
 				}
 			}
 		}
@@ -141,9 +140,7 @@ public class GUILogic : MonoBehaviour {
 		if(screenBook.pages[pageIndex].texture==null){
 			Debug.LogWarning("page doesn't have texture. showing PlaceHolder");
 			tex=newPageTexture;
-
 		} else{
-
 		tex=screenBook.pages [pageIndex].texture;
 		}
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
@@ -151,6 +148,7 @@ public class GUILogic : MonoBehaviour {
 		bookPageDisplayImage.type=Image.Type.Simple;
 		bookPageDisplayImage.preserveAspect=true;
 	}
+
 	void setNextPageButton(){
 		if (mainCanvas.currentScreen==mainCanvas.editorScreen){ //if in editor screen
 			if (screenBook.pages.Count-1 == pageIndex){ // if this is last page
@@ -583,9 +581,8 @@ public class GUILogic : MonoBehaviour {
 					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
-					//if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(Example(go));});
 					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndPlayBook(go));});
-					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
+					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndEditBook(go));});
 	
 					foreach (Image img in t.gameObject.GetComponentsInChildren<Image>()){
 						if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
@@ -610,31 +607,30 @@ public class GUILogic : MonoBehaviour {
 
 
 
-	void loadAndEditBook (GameObject go) { //for onClick button
-		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+	IEnumerator loadAndEditBook (GameObject go) { //for onClick button
+		Debug.Log("loadAndEditBook :: Started");
+		Debug.Log("gameObject is: " + go.name);
+		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);		
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
+		//tell ui to change into editor mode
+		mainCanvas.afterLoadingDoneScreen=mainCanvas.editorScreen;
+		//show loader panel
+		yield return StartCoroutine(toggleLoadinganimation());
 		//call load()
 		completeBookLoad();
-		//tell ui to change into editor mode
-		mainCanvas.changeScreen(mainCanvas.editorScreen);
 	}
 	IEnumerator loadAndPlayBook (GameObject go) { //for onClick button
-		Debug.Log("<<< loadAnPlayBook func started >>>");
-		//loadingAnimationPanel.SetActive (true);
-		//StartCoroutine (toggleLoadinganimation ());
+		Debug.Log("loadAndPlayBook :: Started");
 		Debug.Log("gameObject is: " + go.name);
 		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
+		mainCanvas.afterLoadingDoneScreen=mainCanvas.playerScreen;
+		//show loader panel
+		yield return StartCoroutine(toggleLoadinganimation());
 		//call load()
-		//yield return StartCoroutine(toggleLoadinganimation());
 		completeBookLoad();
-		//yield return StartCoroutine(toggleLoadinganimation());
-		//pageIndex = 0;
-		//tell ui to change into editor mode
-		//mainCanvas.changeScreen(mainCanvas.playerScreen);
-		yield return null;
 	}
 
 
