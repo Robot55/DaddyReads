@@ -26,7 +26,16 @@ public class SaveManager : MonoBehaviour {
 		Debug.Log ("pathTofile is: " + pathToFile);
 		ES3.SaveImage (pageTexture, pathToFile);
 	}
+	public string getDataPath(string currentBookFileName, int pageIndex) {
+		Debug.Log ("getDataPath: started");
+		string bookFolderPath = currentBookFileName;
+		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
+		string photoFileName = "pagePhoto.png";
+		string pathToFile = Path.Combine (pageFolderPath, photoFileName);
+		Debug.Log ("pathTofile is: " + pathToFile);
+		return pathToFile;
 
+	}
 	public void savePageAudio(AudioClip clip, string currentBookFileName, int pageIndex, string _result) {
 		Debug.Log ("<<< SaveMAnager.savePageAudio started >>>");
 		string bookFolderPath = currentBookFileName;
@@ -37,14 +46,14 @@ public class SaveManager : MonoBehaviour {
 		//ES2.Save (clip, pathToFile);
 	}
 	public Texture2D loadPageImage(string currentBookFileName, int pageIndex){
-		Debug.Log("<< Load Texture Method Began >>");
+		Debug.Log("loadPageImage :: Start");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
 		string photoFileName = "pagePhoto.png";
 		string pathToFile = Path.Combine (pageFolderPath, photoFileName);
 		Debug.Log ("pathToFile: " + pathToFile);
 		if (ES2.Exists (pathToFile)) {
-			Debug.Log ("## ES2.Load Begins ## Time: " + Time.time);
+			Debug.Log ("## ES3.Load Begins ## Time: " + Time.time);
 			return ES3.LoadImage (pathToFile);
 			//return ES2.Load<Texture2D> (pathToFile);
 		} else {
@@ -53,7 +62,7 @@ public class SaveManager : MonoBehaviour {
 		}
 	}
 
-	public AudioClip loadPageAudio(string currentBookFileName, int pageIndex, AudioSource audio){
+	public AudioClip loadPageAudio(string currentBookFileName, int pageIndex){
 		Debug.Log("<< Load Audio Method Began >>");
 		string bookFolderPath = currentBookFileName;
 		string pageFolderPath = Path.Combine (bookFolderPath, "Page_" + pageIndex.ToString ("000"));
