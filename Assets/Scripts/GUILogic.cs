@@ -16,6 +16,7 @@ public class GUILogic : MonoBehaviour {
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage, daddyButton, takePhotoButton;
 	public string currentBookFileName = "UserBook";
 	List<string> allPlayerFiles = new List<string>();
+	public int currentBookTotalPages;
 	public AudioSource tmpAudio ;
 	public Book screenBook;
 	public Sprite playBtnSprite, stopBtnSprite;
@@ -31,7 +32,7 @@ public class GUILogic : MonoBehaviour {
 
 	public float mobilePhotoResolution; // set in inspector
 
-	public bool pageAudioPlayed=false, editorMode=false;
+	public bool pageAudioPlayed=false, editorMode=false, loadInBackground=false;
 	SaveManager savemanager;
 
 	public void Hi(){
@@ -79,6 +80,7 @@ public class GUILogic : MonoBehaviour {
 
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen && mainCanvas.currentScreen.activeInHierarchy==true){
 			setPlayPageAudioState();
+			//setNextPageButton ();
 
 		}
 		
@@ -371,8 +373,28 @@ public class GUILogic : MonoBehaviour {
 				}
 			}
 	}
+
 	void setSmartLoaderState(int pageIndex){
-		
+		int pagesInDisk = currentBookTotalPages;
+		int pagesLoaded = screenBook.pages.Count;
+		Debug.Log ("<<< setSmartLoaderState: started");
+		if (pagesInDisk > 0 && pagesInDisk == pagesLoaded) { // if book on disk and book on screen has equal # of pages
+			//this means all pages are already loaded to the screenBook.
+			// so do nothing. return
+			Debug.Log("According to my calculations - all book pages are loaded to screenBook");
+			return;
+		}
+		Debug.Log ("total # of Book pages on disk: " + currentBookTotalPages + " | total # of Book pages in GUI screenBook: " + screenBook.pages.Count);
+		if (pagesInDisk > pagesLoaded) {
+			//there are more pages to load, but not necessarily the next one
+			if (pageIndex + 1 == pagesLoaded) {
+				// current page is the last loaded page. safe to load more!
+				loadInBackground = true;
+				StartCoroutine (singlePageLoadCR (pageIndex + 1));
+			} else {
+				print ("this page is already - but some unloaded pages still exist");
+			}
+		}
 	}
 	void initPageDisplay(){
 		if(tmpAudio.isPlaying) tmpAudio.Stop(); // stop any currently playing tmpAudio
@@ -385,6 +407,7 @@ public class GUILogic : MonoBehaviour {
 
 
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen){
+			setSmartLoaderState (pageIndex);
 			drawSprite();
 			setTakePhotoButtonState();
 			setRecordButtonState();
@@ -589,7 +612,7 @@ public class GUILogic : MonoBehaviour {
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
 		//call load()
-		yield return singlePageLoadCR();
+		yield return singlePageLoadCR(0);
 		pageIndex = 0;
 		//tell ui to change into editor mode
 		mainCanvas.changeScreen(mainCanvas.editorScreen);
@@ -601,7 +624,7 @@ public class GUILogic : MonoBehaviour {
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
 		//call load()
-		yield return singlePageLoadCR();
+		yield return singlePageLoadCR(0);
 		pageIndex = 0;
 		//tell ui to change into editor mode
 		mainCanvas.changeScreen(mainCanvas.playerScreen);
@@ -713,14 +736,25 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log ("<color=green>## Save Method completed ##</color>");
 	}
 
-	IEnumerator singlePageLoadCR() {
+	IEnumerator singlePageLoadCR(int pageIndex) {
 
-		loadingAnimationPanel.SetActive (true);
+		if (!loadInBackground) loadingAnimationPanel.SetActive (true);
+
+		Debug.Log ("about to load page: " + pageIndex + ". currentBook total pages: " + getBookPages (currentBookFileName).ToString ());
+		if (pageIndex == 0) { // about to load page 0 of a book. first time loading in a book
+			currentBookTotalPages = getBookPages(currentBookFileName); // check to see how many page folders are on DISK (tots # pages in saved book)
+			screenBook.pages.Clear (); // clear screenBook
+			screenBook.pages.TrimExcess ();
+		
+		}
+
+
 
 		string imagePath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.png";
 		string audioPath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.wav";
 		WWW txLoader = new WWW ("file://" + imagePath);
 		WWW audioLoader = new WWW ("file://" + audioPath);
+		bool txError = false, audioError=false;
 
 		yield return txLoader;
 		yield return audioLoader;
@@ -729,19 +763,29 @@ public class GUILogic : MonoBehaviour {
 		if (!string.IsNullOrEmpty (txLoader.error)) {
 			// handle error
 			Debug.LogWarning ("some error loading texture: " + txLoader.error.ToString());
+			txError = true;
 		}
 		if (!string.IsNullOrEmpty (audioLoader.error)) {
 			// handle error
-			Debug.LogWarning ("some error loading Audio: " + audioLoader.error.ToString());
+			Debug.Log ("Audio NOT loaded");
+			audioError = true;
+		} else {
+			// no errors from audio loading
 		}
 
-		Texture2D mytx = txLoader.texture;
-		AudioClip myclip = audioLoader.GetAudioClip ();
-		screenBook.pages [pageIndex].texture = mytx;
-		screenBook.pages [pageIndex].clip = myclip;
+		Texture2D mytx = txError==false ? txLoader.texture : null;
+		AudioClip myclip = audioError==false ? audioLoader.GetAudioClip (): null;
+
+		SinglePage newPage = new SinglePage ();
+
+		newPage.texture = mytx;
+		newPage.clip = myclip;
+		screenBook.pages.Add (newPage);
+
 
 		loadingAnimationPanel.SetActive(false);
-
+		setNextPageButton ();
+		loadInBackground = false;
 	}
 
 	public Texture2D loadTitleTexture(string bookFileName){
@@ -753,6 +797,19 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log ("## Load Texture Method completed ##");
 		return deserializePhoto(bookData.bookTitlePhotoData);
 	}
+
+	int getBookPages (string currentBookFileName){
+		Debug.Log ("getBookPages : started");
+		DirectoryInfo bookFolder = new DirectoryInfo (Path.Combine (Application.persistentDataPath, currentBookFileName));
+		DirectoryInfo[] pagesInBook = bookFolder.GetDirectories ("Page*");
+		Debug.Log ("pages in book: "+ pagesInBook.Length);
+		if (pagesInBook.Length == 0) {
+			//handlError
+			Debug.LogWarning("seems this book folder has zero pages in it. ERROR");
+		}
+		return pagesInBook.Length;
+	} 
+
 	void getBookFiles(){
 		Debug.Log("<< GetBookFiles Started >>");
 		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
