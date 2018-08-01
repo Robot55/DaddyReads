@@ -531,7 +531,7 @@ public class GUILogic : MonoBehaviour {
 					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
-					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
+					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndPlayBookCR(go));});
 					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
 					foreach (Image img in t.gameObject.GetComponentsInChildren<Image>()){
 						if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
@@ -557,25 +557,29 @@ public class GUILogic : MonoBehaviour {
 
 
 	void loadAndEditBook (GameObject go) { //for onClick button
-			Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
-			//set global filename for load/save
-			currentBookFileName = go.GetComponentInChildren<Text>().text;
-			//call load()
+		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+		//set global filename for load/save
+		currentBookFileName = go.GetComponentInChildren<Text>().text;
+		//call load()
 		completeBookLoad();
-			//tell ui to change into editor mode
-			mainCanvas.changeScreen(mainCanvas.editorScreen);
+		//tell ui to change into editor mode
+		mainCanvas.changeScreen(mainCanvas.editorScreen);
 	}
 	void loadAndPlayBook (GameObject go) { //for onClick button
-			Debug.Log("<<< loadAnPlayBook func started >>>");
-			Debug.Log("gameObject is: " + go.name);
-			Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
-			//set global filename for load/save
-			currentBookFileName = go.GetComponentInChildren<Text>().text;
-			//call load()
-		completeBookLoad();
+		StartCoroutine(loadAndPlayBookCR(go));
+	}
+
+	IEnumerator loadAndPlayBookCR (GameObject go) {
+		Debug.Log("<<< loadAnPlayBook func started >>>");
+		Debug.Log("gameObject is: " + go.name);
+		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+		//set global filename for load/save
+		currentBookFileName = go.GetComponentInChildren<Text>().text;
+		//call load()
+		yield return completeBookLoadCR();
 		pageIndex = 0;
-			//tell ui to change into editor mode
-			mainCanvas.changeScreen(mainCanvas.playerScreen);
+		//tell ui to change into editor mode
+		mainCanvas.changeScreen(mainCanvas.playerScreen);
 	}
 
 
@@ -704,6 +708,35 @@ public class GUILogic : MonoBehaviour {
 		print ("after loading time: " + Time.time);
 		pageIndex = stash;
 		Debug.Log ("## Load Method completed ##");
+	}
+
+	IEnumerator completeBookLoadCR() {
+
+		loadingAnimationPanel.SetActive (true);
+
+		string imagePath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.png";
+		string audioPath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.wav";
+		WWW txLoader = new WWW ("file://" + imagePath);
+		WWW audioLoader = new WWW ("file://" + audioPath);
+
+		yield return txLoader;
+		yield return audioLoader;
+
+		// error handling
+		if (!string.IsNullOrEmpty (txLoader.error)) {
+			// handle error
+		}
+		if (!string.IsNullOrEmpty (audioLoader.error)) {
+			// handle error
+		}
+
+		Texture2D mytx = txLoader.texture;
+		AudioClip myclip = audioLoader.GetAudioClip ();
+
+		screenBook.pages [pageIndex].texture = mytx;
+		screenBook.pages [pageIndex].clip = myclip;
+		loadingAnimationPanel.SetActive(false);
+
 	}
 
 	public Texture2D loadTitleTexture(string bookFileName){
