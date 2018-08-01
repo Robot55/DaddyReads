@@ -52,12 +52,8 @@ public class GUILogic : MonoBehaviour {
 	}
 		
 	void Start () {
-		//	StartCoroutine(Example());
-		//SaveManager saveManager = new SaveManager();
-//		bool tbool = SaveManager.test();
-//		Debug.Log(SaveManager.test().ToString());
-//		Debug.Log("tbool = " + tbool.ToString());
-		Debug.Log("<< GUILogic Start() Begun >>");
+		Debug.Log("<< GUILogic: Start(): Started >>");
+		loadingAnimationPanel.SetActive (true);
 		Debug.Log("current pageIndex is: " + pageIndex + ". resetting to 0");
 		pageIndex = 0;
 		if (screenBook != null){
@@ -375,14 +371,16 @@ public class GUILogic : MonoBehaviour {
 				}
 			}
 	}
-
+	void setSmartLoaderState(int pageIndex){
+		
+	}
 	void initPageDisplay(){
-		if(tmpAudio.isPlaying) tmpAudio.Stop();
-		if(screenBook.curAudio.isPlaying) screenBook.curAudio.Stop();
+		if(tmpAudio.isPlaying) tmpAudio.Stop(); // stop any currently playing tmpAudio
+		if(screenBook.curAudio.isPlaying) screenBook.curAudio.Stop(); // stop any currently playing curAudio
 		stopPlayback();
 		stopPageAudio();
-		pageAudioPlayed=false;
-		setAutoPlayAudioState();
+		pageAudioPlayed=false; // reset pageAudioPlayed bool state for auto play feature
+		setAutoPlayAudioState(); // run se autoPlay audio state method
 			
 
 
@@ -504,34 +502,52 @@ public class GUILogic : MonoBehaviour {
 
 	}
 
-	void createBookButtonList (){
+
+	IEnumerator createBookButtonListCR(){
+		loadingAnimationPanel.SetActive (true);
+
 		Debug.Log ("allPlayerFiles: " + allPlayerFiles.Count.ToString ());
 		if (allPlayerFiles.Count==0) {
 			Debug.Log("no saved files. count is zero");
-			return;
+			yield break;
 		}
 		//delete all buttons (so you can "redraw" this every time w/o multiple buttons)
 		foreach(Transform transform in fileListContainer.gameObject.transform)
 		{
 			Destroy(transform.gameObject);
 		}
-		foreach (string _name in allPlayerFiles)
+
+		foreach (string bookFileName in allPlayerFiles)
 		{	
 			GameObject go;
 			go = Instantiate (fileNameButtonPrefab, fileListContainer.transform.position, fileListContainer.transform.rotation, fileListContainer.transform);
-			
+
 			foreach (Transform t in go.transform){
 				if(t.gameObject.name.Contains("fileNameButton")){
 
 					Debug.Log("Found the Big fileNameButton");
-					t.gameObject.GetComponentInChildren<Text>().text = _name;
+					t.gameObject.GetComponentInChildren<Text>().text = bookFileName;
 					Sprite tmpSprite;
 
-					Texture2D tex=savemanager.loadPageImage(_name,0);
+					string imagePath = Application.persistentDataPath + "/" + bookFileName + "/" + "Page_000" + "/pagePhoto.png";
+					WWW txLoader = new WWW ("file://" + imagePath);
+
+					yield return txLoader;
+
+					// error handling
+					if (!string.IsNullOrEmpty (txLoader.error)) {
+						// handle error
+						Debug.LogWarning ("some error loading texture: " + txLoader.error.ToString());
+					}
+
+
+
+
+					Texture2D tex=txLoader.texture;
 					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
-					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndPlayBookCR(go));});
+					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
 					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
 					foreach (Image img in t.gameObject.GetComponentsInChildren<Image>()){
 						if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
@@ -542,33 +558,42 @@ public class GUILogic : MonoBehaviour {
 				if(t.gameObject.name.Contains("DeleteButton_Containter")){
 					Debug.Log("Found the DeleteButton container");
 					t.gameObject.SetActive (true);
-					if(_name=="UserBook00") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
+					if(bookFileName=="UserBook00") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
 					t.gameObject.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
-					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{modalDeleteBook(_name);});
+					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{modalDeleteBook(bookFileName);});
 					if (!editorMode) t.gameObject.SetActive(false);
 				}
 			}
-
-
-			
 		}
+		loadingAnimationPanel.SetActive (false);
+
+	}
+
+
+	void createBookButtonList (){
+		StartCoroutine (createBookButtonListCR ());
 	}
 
 
 
 	void loadAndEditBook (GameObject go) { //for onClick button
-		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
-		//set global filename for load/save
-		currentBookFileName = go.GetComponentInChildren<Text>().text;
-		//call load()
-		completeBookLoad();
-		//tell ui to change into editor mode
-		mainCanvas.changeScreen(mainCanvas.editorScreen);
+		StartCoroutine(loadAndEditBookCR(go));
 	}
 	void loadAndPlayBook (GameObject go) { //for onClick button
 		StartCoroutine(loadAndPlayBookCR(go));
 	}
-
+	IEnumerator loadAndEditBookCR (GameObject go) {
+		Debug.Log("<<< loadAnPlayBook func started >>>");
+		Debug.Log("gameObject is: " + go.name);
+		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+		//set global filename for load/save
+		currentBookFileName = go.GetComponentInChildren<Text>().text;
+		//call load()
+		yield return singlePageLoadCR();
+		pageIndex = 0;
+		//tell ui to change into editor mode
+		mainCanvas.changeScreen(mainCanvas.editorScreen);
+	}
 	IEnumerator loadAndPlayBookCR (GameObject go) {
 		Debug.Log("<<< loadAnPlayBook func started >>>");
 		Debug.Log("gameObject is: " + go.name);
@@ -576,7 +601,7 @@ public class GUILogic : MonoBehaviour {
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
 		//call load()
-		yield return completeBookLoadCR();
+		yield return singlePageLoadCR();
 		pageIndex = 0;
 		//tell ui to change into editor mode
 		mainCanvas.changeScreen(mainCanvas.playerScreen);
@@ -687,30 +712,8 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log ("file saved: " + currentBookFileName);
 		Debug.Log ("<color=green>## Save Method completed ##</color>");
 	}
-	public void completeBookLoad(){
-		Debug.Log("<< Load Method Began >>");
-		// get all directories in currentbookfilename folder
-		DirectoryInfo dir = new DirectoryInfo(Path.Combine(Application.persistentDataPath, currentBookFileName));
-		DirectoryInfo[] pagesInBook = dir.GetDirectories("Page_*");
-		screenBook.pages.Clear();
-		int stash = pageIndex;
-		pageIndex = 0;
-		print ("before loading time: " + Time.time);
-		foreach (DirectoryInfo pageFolder in pagesInBook) {
-			SinglePage newPage = new SinglePage ();
-			newPage.texture = savemanager.loadPageImage (currentBookFileName, pageIndex);
-			Debug.Log ("Page#"+pageIndex+ " texture load method returned! " + Time.time);
-			newPage.clip = savemanager.loadPageAudio (currentBookFileName, pageIndex);
-			Debug.Log ("Page#"+pageIndex+ " audio load method returned! " + Time.time);
-			screenBook.pages.Add (newPage);
-			pageIndex++;
-		}
-		print ("after loading time: " + Time.time);
-		pageIndex = stash;
-		Debug.Log ("## Load Method completed ##");
-	}
 
-	IEnumerator completeBookLoadCR() {
+	IEnumerator singlePageLoadCR() {
 
 		loadingAnimationPanel.SetActive (true);
 
@@ -730,14 +733,13 @@ public class GUILogic : MonoBehaviour {
 		if (!string.IsNullOrEmpty (audioLoader.error)) {
 			// handle error
 			Debug.LogWarning ("some error loading Audio: " + audioLoader.error.ToString());
-
 		}
 
 		Texture2D mytx = txLoader.texture;
 		AudioClip myclip = audioLoader.GetAudioClip ();
-
 		screenBook.pages [pageIndex].texture = mytx;
 		screenBook.pages [pageIndex].clip = myclip;
+
 		loadingAnimationPanel.SetActive(false);
 
 	}

@@ -10,13 +10,12 @@ using VoxelBusters.NativePlugins;
 public class SaveManager : MonoBehaviour {
 
 	public SaveLoadWav wavSave = new SaveLoadWav ();
+
 	void Awake () {
+		Debug.Log ("SaveManager : Awake : started");
 	}
 	// Update is called once per frame
-	void _onCompletion(bool onCompletion){
-		Debug.Log("callBack Result: " +onCompletion.ToString());
-	}
-		
+
 	public void savePageImage(Texture2D pageTexture, string currentBookFileName, int pageIndex, string _result) {
 		Debug.Log ("<<< SaveMAnager.savePageImage started >>>");
 		string bookFolderPath = currentBookFileName;
