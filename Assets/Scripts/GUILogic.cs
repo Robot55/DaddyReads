@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
-using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using VoxelBusters.NativePlugins;
@@ -27,41 +26,29 @@ public class GUILogic : MonoBehaviour {
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, modalWindow;
 	public GameObject onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
 	public GameObject photoButtonContainer, recAudioButtonContainer, keypadInputText, kidProofRiddle, loadingAnimationPanel;
-	public GameObject sagiTest;
-	public int pageIndex = 0, loadingPageIndex=0;
+	public int pageIndex = 0;
 	public int kidProofRiddleValue = 99;
 
 	public float mobilePhotoResolution; // set in inspector
 
-	public bool pageAudioPlayed=false, editorMode=false, isLoading=false;
+	public bool pageAudioPlayed=false, editorMode=false;
 	SaveManager savemanager;
 
-	DirectoryInfo[] pagesInBook;
+	public void Hi(){
+		Debug.Log(" <color=green>@@@ Ding! Ding! Ding! @@@</color>");
+	}
 
 	void Awake(){
 		Debug.Log("<<< Awake method started >>>");
 		savemanager = this.gameObject.AddComponent<SaveManager>();
-
-
 	}
 
-	IEnumerator Exampler(GameObject go)
+	IEnumerator Example()
 	{
 		print(Time.time);
-		sagiTest.SetActive (true);
-		loadAndPlayBook(go);
-		//yield return new WaitForSeconds(5);
-		//sagiTest.SetActive (false);
-
+		yield return new WaitForSeconds(5);
 		print(Time.time);
 		//StartCoroutine(Example());
-		yield return null;
-	}
-
-	IEnumerator toggleLoadinganimation()
-	{
-		loadingAnimationPanel.SetActive (!loadingAnimationPanel.activeInHierarchy);
-		yield return null;
 	}
 		
 	void Start () {
@@ -102,45 +89,18 @@ public class GUILogic : MonoBehaviour {
 		
 	}
 
-	void FixedUpdate(){
-		//print ("screenBook.pages.count: " + screenBook.pages.Count);
-		if (isLoading) {
-			if (loadingPageIndex >= 0 && loadingPageIndex <= pagesInBook.Length - 1) {
-				print ("in loader loop! bingo!");
-				SinglePage newPage = new SinglePage ();
-				newPage.texture = savemanager.loadPageImage (currentBookFileName, loadingPageIndex);
-				Debug.Log ("Page#" + loadingPageIndex + " texture load method returned! " + Time.time);
-				newPage.clip = savemanager.loadPageAudio (currentBookFileName, loadingPageIndex);
-				Debug.Log ("Page#" + loadingPageIndex + " audio load method returned! " + Time.time);
-				screenBook.pages.Add (newPage);
-				loadingPageIndex++;
-			} else {
-				isLoading = false;
-				loadingPageIndex = 0;
-				Debug.Log ("loading finished. pageindex=" + pageIndex + ". pagesinBookLastIndex=" + (pagesInBook.Length - 1).ToString());
-				Debug.Log ("screenbook pages: " + screenBook.pages.Count);
-				pageIndex = 0;
-				StartCoroutine(toggleLoadinganimation());
-				//tell ui to change into editor mode
-				if (mainCanvas.currentScreen==mainCanvas.homeScreen	){
-					mainCanvas.changeScreen(mainCanvas.afterLoadingDoneScreen);
-				}
-			}
-		}
-	}
-
 	
 // ###### SECTION START: UPDATE FUNCTION METHODS ##########
 
 	void drawSprite () {
-		if (isLoading) return;
-		if (screenBook.pages.Count == 0) return;
 		Sprite tmpSprite;
 		Texture2D tex;
 		if(screenBook.pages[pageIndex].texture==null){
 			Debug.LogWarning("page doesn't have texture. showing PlaceHolder");
 			tex=newPageTexture;
+
 		} else{
+
 		tex=screenBook.pages [pageIndex].texture;
 		}
 		tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
@@ -148,7 +108,6 @@ public class GUILogic : MonoBehaviour {
 		bookPageDisplayImage.type=Image.Type.Simple;
 		bookPageDisplayImage.preserveAspect=true;
 	}
-
 	void setNextPageButton(){
 		if (mainCanvas.currentScreen==mainCanvas.editorScreen){ //if in editor screen
 			if (screenBook.pages.Count-1 == pageIndex){ // if this is last page
@@ -274,7 +233,6 @@ public class GUILogic : MonoBehaviour {
 
 	void setAutoPlayAudioState(){
 		if (mainCanvas.currentScreen!=mainCanvas.playerScreen) return;
-		if( screenBook.pages.Count==0) return;
 		Debug.Log ("davedave pageIndex is: " + pageIndex);
 		if (screenBook.pages[pageIndex].clip==null) return;
 		if (pageAudioPlayed==true) return;
@@ -284,11 +242,7 @@ public class GUILogic : MonoBehaviour {
 
 	}
 	void setPlayPageAudioState (){
-		if (mainCanvas.currentScreen==mainCanvas.homeScreen) return;
-		if (isLoading) return;
 		//Debug.Log (screenBook.pages [pageIndex].clip == null ? "page: " + pageIndex + " clip is null" : "clip load status: " + screenBook.pages [pageIndex].clip.loadState);
-		//Debug.Log(screenBook == null ? "screenbook is null" : "screenBook pages count: "+screenBook.pages.Count);
-		if (screenBook.pages.Count == 0) return;
 		if (screenBook.pages[pageIndex].clip != null){
 			playButtonOnImage.gameObject.SetActive(true);
 			if (screenBook.curAudio.isPlaying) {	
@@ -367,11 +321,7 @@ public class GUILogic : MonoBehaviour {
 	}
 	void playPageAudio(){
 		screenBook.curAudio.clip = screenBook.pages[pageIndex].clip;
-		print ("playPageAudio: audio.clip.isPlaying: " +screenBook.curAudio.isPlaying + " " +Time.time);
-		print ("playPageAudio is ready: " + screenBook.curAudio.clip.loadState);
 		screenBook.curAudio.Play();
-		print ("playPageAudio: audio.clip.isPlaying: " +screenBook.curAudio.isPlaying + " " +Time.time);
-
 		pageAudioPlayed=true;
 	}
 	void stopPageAudio(){
@@ -581,14 +531,8 @@ public class GUILogic : MonoBehaviour {
 					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
-<<<<<<< HEAD
-					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndPlayBook(go));});
-					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndEditBook(go));});
-	
-=======
 					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndPlayBookCR(go));});
 					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
->>>>>>> FIX_daddyModeScreenFuckups
 					foreach (Image img in t.gameObject.GetComponentsInChildren<Image>()){
 						if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
 						if (img.gameObject.name.Contains("editButton") && !editorMode) img.gameObject.SetActive(false);
@@ -612,23 +556,6 @@ public class GUILogic : MonoBehaviour {
 
 
 
-<<<<<<< HEAD
-	IEnumerator loadAndEditBook (GameObject go) { //for onClick button
-		Debug.Log("loadAndEditBook :: Started");
-		Debug.Log("gameObject is: " + go.name);
-		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);		
-		//set global filename for load/save
-		currentBookFileName = go.GetComponentInChildren<Text>().text;
-		//tell ui to change into editor mode
-		mainCanvas.afterLoadingDoneScreen=mainCanvas.editorScreen;
-		//show loader panel
-		yield return StartCoroutine(toggleLoadinganimation());
-		//call load()
-		completeBookLoad();
-	}
-	IEnumerator loadAndPlayBook (GameObject go) { //for onClick button
-		Debug.Log("loadAndPlayBook :: Started");
-=======
 	void loadAndEditBook (GameObject go) { //for onClick button
 		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
 		//set global filename for load/save
@@ -644,24 +571,15 @@ public class GUILogic : MonoBehaviour {
 
 	IEnumerator loadAndPlayBookCR (GameObject go) {
 		Debug.Log("<<< loadAnPlayBook func started >>>");
->>>>>>> FIX_daddyModeScreenFuckups
 		Debug.Log("gameObject is: " + go.name);
 		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
-<<<<<<< HEAD
-		mainCanvas.afterLoadingDoneScreen=mainCanvas.playerScreen;
-		//show loader panel
-		yield return StartCoroutine(toggleLoadinganimation());
-		//call load()
-		completeBookLoad();
-=======
 		//call load()
 		yield return completeBookLoadCR();
 		pageIndex = 0;
 		//tell ui to change into editor mode
 		mainCanvas.changeScreen(mainCanvas.playerScreen);
->>>>>>> FIX_daddyModeScreenFuckups
 	}
 
 
@@ -770,34 +688,28 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log ("<color=green>## Save Method completed ##</color>");
 	}
 	public void completeBookLoad(){
-		Debug.Log("completeBookLoad :: Started");
-		//sagiTest.SetActive(true);
+		Debug.Log("<< Load Method Began >>");
 		// get all directories in currentbookfilename folder
 		DirectoryInfo dir = new DirectoryInfo(Path.Combine(Application.persistentDataPath, currentBookFileName));
-		pagesInBook = dir.GetDirectories("Page_*");
+		DirectoryInfo[] pagesInBook = dir.GetDirectories("Page_*");
 		screenBook.pages.Clear();
-		//int stash = pageIndex;
-		//pageIndex = 0;
+		int stash = pageIndex;
+		pageIndex = 0;
 		print ("before loading time: " + Time.time);
-		isLoading = true;
-//		foreach (DirectoryInfo pageFolder in pagesInBook) {
-//			SinglePage newPage = new SinglePage ();
-//			newPage.texture = savemanager.loadPageImage (currentBookFileName, pageIndex);
-//			Debug.Log ("Page#"+pageIndex+ " texture load method returned! " + Time.time);
-//			newPage.clip = savemanager.loadPageAudio (currentBookFileName, pageIndex, screenBook.curAudio );
-//			Debug.Log ("Page#"+pageIndex+ " audio load method returned! " + Time.time);
-//			screenBook.pages.Add (newPage);
-//			pageIndex++;
-//		}
-//		print ("after loading time: " + Time.time);
-//		pageIndex = stash;
-//		Debug.Log ("## Load Method completed ##");
-		//yield return null;
+		foreach (DirectoryInfo pageFolder in pagesInBook) {
+			SinglePage newPage = new SinglePage ();
+			newPage.texture = savemanager.loadPageImage (currentBookFileName, pageIndex);
+			Debug.Log ("Page#"+pageIndex+ " texture load method returned! " + Time.time);
+			newPage.clip = savemanager.loadPageAudio (currentBookFileName, pageIndex);
+			Debug.Log ("Page#"+pageIndex+ " audio load method returned! " + Time.time);
+			screenBook.pages.Add (newPage);
+			pageIndex++;
+		}
+		print ("after loading time: " + Time.time);
+		pageIndex = stash;
+		Debug.Log ("## Load Method completed ##");
 	}
 
-<<<<<<< HEAD
-
-=======
 	IEnumerator completeBookLoadCR() {
 
 		loadingAnimationPanel.SetActive (true);
@@ -813,9 +725,12 @@ public class GUILogic : MonoBehaviour {
 		// error handling
 		if (!string.IsNullOrEmpty (txLoader.error)) {
 			// handle error
+			Debug.LogWarning ("some error loading texture: " + txLoader.error.ToString());
 		}
 		if (!string.IsNullOrEmpty (audioLoader.error)) {
 			// handle error
+			Debug.LogWarning ("some error loading Audio: " + audioLoader.error.ToString());
+
 		}
 
 		Texture2D mytx = txLoader.texture;
@@ -836,7 +751,6 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log ("## Load Texture Method completed ##");
 		return deserializePhoto(bookData.bookTitlePhotoData);
 	}
->>>>>>> FIX_daddyModeScreenFuckups
 	void getBookFiles(){
 		Debug.Log("<< GetBookFiles Started >>");
 		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);

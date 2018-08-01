@@ -163,7 +163,7 @@ Prefab:
     - target: {fileID: 224553866763221410, guid: 8ddec95d089c85847b845d53be38743b,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: -100
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224553866763221410, guid: 8ddec95d089c85847b845d53be38743b,
         type: 2}
@@ -173,7 +173,7 @@ Prefab:
     - target: {fileID: 224553866763221410, guid: 8ddec95d089c85847b845d53be38743b,
         type: 2}
       propertyPath: m_SizeDelta.y
-      value: 180
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224553866763221410, guid: 8ddec95d089c85847b845d53be38743b,
         type: 2}
@@ -2668,14 +2668,11 @@ MonoBehaviour:
   keypadInputText: {fileID: 772466162}
   kidProofRiddle: {fileID: 2051038039}
   loadingAnimationPanel: {fileID: 2041384350}
-  sagiTest: {fileID: 0}
   pageIndex: 0
-  loadingPageIndex: 0
   kidProofRiddleValue: 99
   mobilePhotoResolution: 0.5
   pageAudioPlayed: 0
   editorMode: 0
-  isLoading: 0
 --- !u!81 &493890471
 AudioListener:
   m_ObjectHideFlags: 0
