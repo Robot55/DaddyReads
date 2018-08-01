@@ -581,9 +581,14 @@ public class GUILogic : MonoBehaviour {
 					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
+<<<<<<< HEAD
 					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndPlayBook(go));});
 					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndEditBook(go));});
 	
+=======
+					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{StartCoroutine(loadAndPlayBookCR(go));});
+					if (editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndEditBook(go);});
+>>>>>>> FIX_daddyModeScreenFuckups
 					foreach (Image img in t.gameObject.GetComponentsInChildren<Image>()){
 						if (img.gameObject.name.Contains("playButton") && editorMode) img.gameObject.SetActive(false);
 						if (img.gameObject.name.Contains("editButton") && !editorMode) img.gameObject.SetActive(false);
@@ -607,6 +612,7 @@ public class GUILogic : MonoBehaviour {
 
 
 
+<<<<<<< HEAD
 	IEnumerator loadAndEditBook (GameObject go) { //for onClick button
 		Debug.Log("loadAndEditBook :: Started");
 		Debug.Log("gameObject is: " + go.name);
@@ -622,15 +628,40 @@ public class GUILogic : MonoBehaviour {
 	}
 	IEnumerator loadAndPlayBook (GameObject go) { //for onClick button
 		Debug.Log("loadAndPlayBook :: Started");
+=======
+	void loadAndEditBook (GameObject go) { //for onClick button
+		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+		//set global filename for load/save
+		currentBookFileName = go.GetComponentInChildren<Text>().text;
+		//call load()
+		completeBookLoad();
+		//tell ui to change into editor mode
+		mainCanvas.changeScreen(mainCanvas.editorScreen);
+	}
+	void loadAndPlayBook (GameObject go) { //for onClick button
+		StartCoroutine(loadAndPlayBookCR(go));
+	}
+
+	IEnumerator loadAndPlayBookCR (GameObject go) {
+		Debug.Log("<<< loadAnPlayBook func started >>>");
+>>>>>>> FIX_daddyModeScreenFuckups
 		Debug.Log("gameObject is: " + go.name);
 		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
+<<<<<<< HEAD
 		mainCanvas.afterLoadingDoneScreen=mainCanvas.playerScreen;
 		//show loader panel
 		yield return StartCoroutine(toggleLoadinganimation());
 		//call load()
 		completeBookLoad();
+=======
+		//call load()
+		yield return completeBookLoadCR();
+		pageIndex = 0;
+		//tell ui to change into editor mode
+		mainCanvas.changeScreen(mainCanvas.playerScreen);
+>>>>>>> FIX_daddyModeScreenFuckups
 	}
 
 
@@ -764,7 +795,48 @@ public class GUILogic : MonoBehaviour {
 		//yield return null;
 	}
 
+<<<<<<< HEAD
 
+=======
+	IEnumerator completeBookLoadCR() {
+
+		loadingAnimationPanel.SetActive (true);
+
+		string imagePath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.png";
+		string audioPath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.wav";
+		WWW txLoader = new WWW ("file://" + imagePath);
+		WWW audioLoader = new WWW ("file://" + audioPath);
+
+		yield return txLoader;
+		yield return audioLoader;
+
+		// error handling
+		if (!string.IsNullOrEmpty (txLoader.error)) {
+			// handle error
+		}
+		if (!string.IsNullOrEmpty (audioLoader.error)) {
+			// handle error
+		}
+
+		Texture2D mytx = txLoader.texture;
+		AudioClip myclip = audioLoader.GetAudioClip ();
+
+		screenBook.pages [pageIndex].texture = mytx;
+		screenBook.pages [pageIndex].clip = myclip;
+		loadingAnimationPanel.SetActive(false);
+
+	}
+
+	public Texture2D loadTitleTexture(string bookFileName){
+		Debug.Log("<< Load Texture Method Began >>");
+		BinaryFormatter bf = new BinaryFormatter ();
+		FileStream file = File.Open (Application.persistentDataPath + "/" + bookFileName, FileMode.Open);
+		BookData bookData = (BookData)bf.Deserialize (file);
+		file.Close ();
+		Debug.Log ("## Load Texture Method completed ##");
+		return deserializePhoto(bookData.bookTitlePhotoData);
+	}
+>>>>>>> FIX_daddyModeScreenFuckups
 	void getBookFiles(){
 		Debug.Log("<< GetBookFiles Started >>");
 		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
