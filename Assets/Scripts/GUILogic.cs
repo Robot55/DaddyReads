@@ -96,7 +96,6 @@ public class GUILogic : MonoBehaviour {
 		if(screenBook.pages[pageIndex].texture==null){
 			Debug.LogWarning("page doesn't have texture. showing PlaceHolder");
 			tex=newPageTexture;
-
 		} else{
 
 		tex=screenBook.pages [pageIndex].texture;
@@ -108,7 +107,7 @@ public class GUILogic : MonoBehaviour {
 	}
 	void setNextPageButton(){
 		if (mainCanvas.currentScreen==mainCanvas.editorScreen){ //if in editor screen
-			if (screenBook.pages.Count-1 == pageIndex){ // if this is last page
+			if (screenBook.pages.Count-1 == pageIndex && !loadInBackground){ // if this is last page
 					if (screenBook.pages[pageIndex].texture==null){ //  and if page texture is still null
 					nextPageButton.SetActive(false);
 					} else { // if page texture no longer null
@@ -374,6 +373,18 @@ public class GUILogic : MonoBehaviour {
 			}
 	}
 
+	public void pauseNextPageButton(float pauseLength){
+		StartCoroutine (pauseNextPageButtonCR (pauseLength));
+	}
+
+	IEnumerator pauseNextPageButtonCR (float pauseLength){
+		Debug.Log ("pauseNextPageButtonCR: started: going to wait for " + pauseLength + " seconds.");
+		yield return new WaitForSeconds (pauseLength);
+		Debug.Log ("Waiting done. making nextPage button interactable again");
+		nextPageButton.GetComponent<Button> ().interactable = true;
+		setNextPageButton ();
+	}
+
 	void setSmartLoaderState(int pageIndex){
 		int pagesInDisk = currentBookTotalPages;
 		int pagesLoaded = screenBook.pages.Count;
@@ -381,7 +392,7 @@ public class GUILogic : MonoBehaviour {
 		if (pagesInDisk > 0 && pagesInDisk == pagesLoaded) { // if book on disk and book on screen has equal # of pages
 			//this means all pages are already loaded to the screenBook.
 			// so do nothing. return
-			Debug.Log("According to my calculations - all book pages are loaded to screenBook");
+			Debug.Log("All book pages are loaded to screenBook");
 			return;
 		}
 		Debug.Log ("total # of Book pages on disk: " + currentBookTotalPages + " | total # of Book pages in GUI screenBook: " + screenBook.pages.Count);
@@ -526,6 +537,15 @@ public class GUILogic : MonoBehaviour {
 	}
 
 
+	IEnumerator destroyNestedChildrenCR (Transform parent){
+		foreach (Transform child in parent) {
+			print ("destroying object: " + child.gameObject.name);
+			Destroy (child.gameObject);
+		}
+		yield return null;
+
+	}
+
 	IEnumerator createBookButtonListCR(){
 		loadingAnimationPanel.SetActive (true);
 
@@ -535,22 +555,22 @@ public class GUILogic : MonoBehaviour {
 			yield break;
 		}
 		//delete all buttons (so you can "redraw" this every time w/o multiple buttons)
-		foreach(Transform transform in fileListContainer.gameObject.transform)
-		{
-			Destroy(transform.gameObject);
+		foreach (Transform child in fileListContainer.transform) {
+			print ("destroying object: " + child.gameObject.name);
+			if(child.transform.gameObject.name.Contains("FileNameButtonWrapper")) Destroy (child.gameObject);
 		}
+
 
 		foreach (string bookFileName in allPlayerFiles)
 		{	
 			GameObject go;
 			go = Instantiate (fileNameButtonPrefab, fileListContainer.transform.position, fileListContainer.transform.rotation, fileListContainer.transform);
-
+			print ("instantiated new object: " + go.name);
 			foreach (Transform t in go.transform){
 				if(t.gameObject.name.Contains("fileNameButton")){
 
 					Debug.Log("Found the Big fileNameButton");
 					t.gameObject.GetComponentInChildren<Text>().text = bookFileName;
-					Sprite tmpSprite;
 
 					string imagePath = Application.persistentDataPath + "/" + bookFileName + "/" + "Page_000" + "/pagePhoto.png";
 					WWW txLoader = new WWW ("file://" + imagePath);
@@ -563,11 +583,9 @@ public class GUILogic : MonoBehaviour {
 						Debug.LogWarning ("some error loading texture: " + txLoader.error.ToString());
 					}
 
-
-
-
 					Texture2D tex=txLoader.texture;
-					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+					Sprite tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+					Debug.Log (" BUGHUNT: t. gameobject: " + t.gameObject!=null ? t.gameObject.name : "is null. and tmpSprite: " + tmpSprite!=null ? tmpSprite.name : "is null");
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
 					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
@@ -747,9 +765,6 @@ public class GUILogic : MonoBehaviour {
 			screenBook.pages.TrimExcess ();
 		
 		}
-
-
-
 		string imagePath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.png";
 		string audioPath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.wav";
 		WWW txLoader = new WWW ("file://" + imagePath);
@@ -784,8 +799,8 @@ public class GUILogic : MonoBehaviour {
 
 
 		loadingAnimationPanel.SetActive(false);
-		setNextPageButton ();
 		loadInBackground = false;
+		setNextPageButton ();
 	}
 
 	public Texture2D loadTitleTexture(string bookFileName){
@@ -835,10 +850,6 @@ public class GUILogic : MonoBehaviour {
 		}
 		Debug.Log("Player Saved File List Count after populating: " + allPlayerFiles.Count);
 	}
-	void createDemoBookAndSave (){
-		currentBookFileName = "PlayerBook00";
-		completeBookSave();
-	}
 	public void backButtonClicked(){
 		if(editorMode) toggleEditMode(); 
 		mainCanvas.changeScreen(mainCanvas.homeScreen);
@@ -847,9 +858,10 @@ public class GUILogic : MonoBehaviour {
 		// currentBook should be newBookPrefab
 		GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
 		Destroy(screenBook.gameObject);
+		pageIndex = 0;
 		screenBook = newBook.GetComponent<Book>();
 		// set filename to FileInfo.count+1
-		currentBookFileName = "UserBook"+allPlayerFiles.Count.ToString("000");
+		currentBookFileName = allPlayerFiles[allPlayerFiles.Count-1] != "UserBook"+allPlayerFiles.Count.ToString("000") ? "UserBook"+allPlayerFiles.Count.ToString("000") : "UserBook"+allPlayerFiles.Count.ToString("0000");
 		// save
 		if (!editorMode) toggleEditMode();
 		//save();
