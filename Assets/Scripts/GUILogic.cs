@@ -7,6 +7,7 @@ using System;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using VoxelBusters.NativePlugins;
+using System.Linq;
 
 
 
@@ -270,12 +271,28 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	//Callback
-	private void PickImageFinished (ePickImageFinishReason _reason, Texture2D _image){
-		Debug.Log("Reason = " + _reason);
-		Debug.Log("Texture = " + _image);
+	private void PickImageFinished (ePickImageFinishReason reason, Texture2D newTexture){
+		Debug.Log ("<<< PickImageFinished: Started");
+		Debug.Log("Reason = " + reason);
+		Debug.Log(newTexture!=null ? "Texture = " + newTexture : "Texture is Null");
 
-		screenBook.pages[pageIndex].texture = _image;
-		savemanager.savePageImage (screenBook.pages [pageIndex].texture, currentBookFileName, pageIndex, "");
+		//Error Handling
+		if (reason == ePickImageFinishReason.SELECTED){ // If all is OK do stuff
+			Debug.Log ("SUCCESS: PickImageFinished returned SELECTED. newTexture is: " + newTexture);
+			screenBook.pages[pageIndex].texture = newTexture;
+			Debug.Log ("saving photo to device");
+			savemanager.savePageImage (screenBook.pages [pageIndex].texture, currentBookFileName, pageIndex, "");
+		}
+		if (reason == ePickImageFinishReason.CANCELLED){ // If user cancelled get image photo
+			Debug.Log ("USER CANCELLED: PickImageFinished returned CANCELLED. newTexture is: " + newTexture);
+			Debug.Log ("Doing nothing");
+		}
+		if (reason == ePickImageFinishReason.FAILED){ // If user cancelled get image photo
+			Debug.Log ("FAILIURE: PickImageFinished returned FAILED. newTexture is: " + newTexture!=null ? newTexture.ToString() : "Null");
+			Debug.Log ("Doing nothing");
+		}
+
+
 		initPageDisplay();
 	}
 
@@ -560,7 +577,6 @@ public class GUILogic : MonoBehaviour {
 			if(child.transform.gameObject.name.Contains("FileNameButtonWrapper")) Destroy (child.gameObject);
 		}
 
-
 		foreach (string bookFileName in allPlayerFiles)
 		{	
 			GameObject go;
@@ -584,8 +600,10 @@ public class GUILogic : MonoBehaviour {
 					}
 
 					Texture2D tex=txLoader.texture;
-					Sprite tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
-					Debug.Log (" BUGHUNT: t. gameobject: " + t.gameObject!=null ? t.gameObject.name : "is null. and tmpSprite: " + tmpSprite!=null ? tmpSprite.name : "is null");
+					Sprite tmpSprite = null;
+					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+					Debug.Log ((t!=null) ? "if(transform) reutrns not null" : "if(transform) reutrns null");
+					//Debug.Log (" BUGHUNT: t. gameobject: " + t.gameObject!=null ? t.gameObject.name : "is null. and tmpSprite: " + tmpSprite!=null ? tmpSprite.name : "is null");
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
 					if (!editorMode) t.gameObject.GetComponent<Button>().onClick.AddListener(delegate{loadAndPlayBook(go);});
@@ -599,7 +617,7 @@ public class GUILogic : MonoBehaviour {
 				if(t.gameObject.name.Contains("DeleteButton_Containter")){
 					Debug.Log("Found the DeleteButton container");
 					t.gameObject.SetActive (true);
-					if(bookFileName=="UserBook00") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
+					if(bookFileName=="UserBook000") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
 					t.gameObject.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
 					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{modalDeleteBook(bookFileName);});
 					if (!editorMode) t.gameObject.SetActive(false);
@@ -828,11 +846,11 @@ public class GUILogic : MonoBehaviour {
 	void getBookFiles(){
 		Debug.Log("<< GetBookFiles Started >>");
 		DirectoryInfo dir = new DirectoryInfo(Application.persistentDataPath);
-		DirectoryInfo[] bookFolders = dir.GetDirectories("UserBook*");
+		DirectoryInfo[] bookFolders = dir.GetDirectories ("UserBook*").OrderBy (p => p.FullName).ToArray();
 		Debug.Log("bookFolders Count: "+ bookFolders.Length.ToString());
 		if (bookFolders.Length==0){
 			Debug.Log("no saved books in user device. saving demo Book now");
-			currentBookFileName = "UserBook00";
+			currentBookFileName = "UserBook000";
 			completeBookSave();
 			bookFolders = dir.GetDirectories("UserBook*");
 			Debug.Log("DirInfo Count: "+ bookFolders.Length.ToString());
@@ -854,6 +872,32 @@ public class GUILogic : MonoBehaviour {
 		if(editorMode) toggleEditMode(); 
 		mainCanvas.changeScreen(mainCanvas.homeScreen);
 	}
+
+	public string generateNewBookFileName (){
+		Debug.Log ("<<< generateNewBookFileName : Started : ");
+		if (allPlayerFiles.Count==0){
+			Debug.Log ("no user book folders found. this shouldn't happen. ERROR!");
+		}
+		int highestNumber = 0;
+		foreach (string bookFileName in allPlayerFiles) {
+			string lastThreeDigits = bookFileName.Substring (bookFileName.Length - 3);
+			Debug.Log ("filename is: " + bookFileName + ". Last three digits are: " + lastThreeDigits);
+			int i;
+			if (Int32.TryParse (lastThreeDigits, out i)) {
+				//if nothing went wrong and integer is fine
+				Debug.Log ("integer form filename is OK. value = " + i);
+				if (i > highestNumber) {
+					Debug.Log ("higher number found: " + i);
+					highestNumber = i;
+				}
+			} else {
+				//integer form string failed
+				Debug.Log ("PARSE error: interger from fileName string failed.");
+			}
+		}
+		highestNumber++;
+		return "UserBook"+highestNumber.ToString("000");
+	}
 	public void createNewBook(){
 		// currentBook should be newBookPrefab
 		GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
@@ -861,7 +905,9 @@ public class GUILogic : MonoBehaviour {
 		pageIndex = 0;
 		screenBook = newBook.GetComponent<Book>();
 		// set filename to FileInfo.count+1
-		currentBookFileName = allPlayerFiles[allPlayerFiles.Count-1] != "UserBook"+allPlayerFiles.Count.ToString("000") ? "UserBook"+allPlayerFiles.Count.ToString("000") : "UserBook"+allPlayerFiles.Count.ToString("0000");
+		Debug.Log(generateNewBookFileName());
+		currentBookFileName = generateNewBookFileName ();
+		//currentBookFileName = allPlayerFiles[allPlayerFiles.Count-1] != "UserBook"+allPlayerFiles.Count.ToString("000") ? "UserBook"+allPlayerFiles.Count.ToString("000") : "UserBook"+allPlayerFiles.Count+1.ToString("000");
 		// save
 		if (!editorMode) toggleEditMode();
 		//save();
