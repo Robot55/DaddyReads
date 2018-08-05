@@ -774,6 +774,8 @@ public class GUILogic : MonoBehaviour {
 
 	IEnumerator singlePageLoadCR(int pageIndex) {
 
+		float t = Time.realtimeSinceStartup;
+
 		if (!loadInBackground) loadingAnimationPanel.SetActive (true);
 
 		Debug.Log ("about to load page: " + pageIndex + ". currentBook total pages: " + getBookPages (currentBookFileName).ToString ());
@@ -783,14 +785,18 @@ public class GUILogic : MonoBehaviour {
 			screenBook.pages.TrimExcess ();
 		
 		}
+		Debug.Log (">>>>>>> G" + (Time.realtimeSinceStartup - t));
 		string imagePath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pagePhoto.png";
 		string audioPath = Application.persistentDataPath + "/" + currentBookFileName + "/" + "Page_" + pageIndex.ToString ("000") + "/pageAudio.wav";
 		WWW txLoader = new WWW ("file://" + imagePath);
 		WWW audioLoader = new WWW ("file://" + audioPath);
 		bool txError = false, audioError=false;
 
+		Debug.Log (">>>>>>> 0" + (Time.realtimeSinceStartup - t));
 		yield return txLoader;
+		Debug.Log (">>>>>>> 1 " + (Time.realtimeSinceStartup - t));
 		yield return audioLoader;
+		Debug.Log (">>>>>>> 2 " + (Time.realtimeSinceStartup - t));
 
 		// error handling
 		if (!string.IsNullOrEmpty (txLoader.error)) {
@@ -807,7 +813,9 @@ public class GUILogic : MonoBehaviour {
 		}
 
 		Texture2D mytx = txError==false ? txLoader.texture : null;
+		Debug.Log (">>>>>>> 3 " + (Time.realtimeSinceStartup - t));
 		AudioClip myclip = audioError==false ? audioLoader.GetAudioClip (): null;
+		Debug.Log (">>>>>>> 4 " + (Time.realtimeSinceStartup - t));
 
 		SinglePage newPage = new SinglePage ();
 
@@ -819,6 +827,7 @@ public class GUILogic : MonoBehaviour {
 		loadingAnimationPanel.SetActive(false);
 		loadInBackground = false;
 		setNextPageButton ();
+		Debug.Log (">>>>>>> 5 " + (Time.realtimeSinceStartup - t));
 	}
 
 	public Texture2D loadTitleTexture(string bookFileName){
