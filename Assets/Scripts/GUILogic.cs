@@ -30,12 +30,26 @@ public class GUILogic : MonoBehaviour {
 	public GameObject photoButtonContainer, recAudioButtonContainer, keypadInputText, kidProofRiddle, loadingAnimationPanel;
 	public int pageIndex = 0;
 	public int kidProofRiddleValue = 99;
+	public string demoBookUpdateFilename;
 
 	public float mobilePhotoResolution; // set in inspector
 
-	public bool pageAudioPlayed=false, editorMode=false, loadInBackground=false;
+	public bool pageAudioPlayed=false, editorMode=false, loadInBackground=false, creatingNewBook=false, demoBookUpdateChecked=false;
 	SaveManager savemanager;
 
+	void demoBookUpdate (string fileToCheck){
+		Debug.Log ("demoBookUpdate : Started : Checking to see if update file exists");
+		if (!ES3.FileExists (fileToCheck)) { // if updateFile does NOT exist
+			Debug.Log ("demoBook " + fileToCheck + " does NOT Exist. <color=red>PERFORMING UPDATE</color>");
+			//Do a complete save of current screenBook to demoBook File
+			currentBookFileName = "UserBook000";
+			completeBookSave ();
+			ES2.Save ("123", fileToCheck);
+
+		} else {
+			Debug.Log ("demoBook " + fileToCheck + " already exist. <color=green>NOT PERFORMING UPDATE</color>");
+		}
+	}
 	public void Hi(){
 		Debug.Log(" <color=green>@@@ Ding! Ding! Ding! @@@</color>");
 	}
@@ -48,10 +62,15 @@ public class GUILogic : MonoBehaviour {
 	void Start () {
 		Debug.Log("<< GUILogic: Start(): Started");
 		loadingAnimationPanel.SetActive (true);
+		creatingNewBook = false;
 		Debug.Log("current pageIndex is: " + pageIndex + ". resetting to 0");
 		pageIndex = 0;
 		if (screenBook != null){
 			Debug.Log("book exists: " + screenBook);	
+			if (demoBookUpdateChecked == false) {
+				demoBookUpdateChecked = true;
+				demoBookUpdate (demoBookUpdateFilename);
+			}
 			tmpAudio =  tmpAudio==null ? GetComponent<AudioSource> () : tmpAudio;
 			mainCanvas = mainCanvas==null ? GameObject.FindWithTag("mainCanvas").GetComponent<ScreenManager>() : mainCanvas;
 			getBookFiles();
@@ -353,6 +372,7 @@ public class GUILogic : MonoBehaviour {
 		daddyModeBackground.SetActive(!daddyModeBackground.activeInHierarchy);
 		//Rebuild BookFile Buttons if this is the homeScreen
 		if (mainCanvas.currentScreen==mainCanvas.homeScreen){
+			
 			createBookButtonList();
 		}
 	}
@@ -398,6 +418,8 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	void setSmartLoaderState(int pageIndex){
+		if (creatingNewBook)
+			return;
 		int pagesInDisk = currentBookTotalPages;
 		int pagesLoaded = screenBook.pages.Count;
 		Debug.Log ("<<< setSmartLoaderState: started");
@@ -537,6 +559,7 @@ public class GUILogic : MonoBehaviour {
 
 	public void callKidProofModal(){
 		if (editorMode) { //if already in editor mode - skip entire modal and toggle editor mode
+			Debug.Log("Already in editor mode. Toggling to normal mode - no kidProof riddle required");
 			toggleEditMode();
 			closeModalWindow();
 			return;
@@ -634,7 +657,7 @@ public class GUILogic : MonoBehaviour {
 				if(t.gameObject.name.Contains("DeleteButton_Containter")){
 					Debug.Log("DeleteButton container found: " + t.name + " / " + t.gameObject.name);
 					t.gameObject.SetActive (true);
-					if(bookFileName=="UserBook000") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
+					if(bookFileName=="UserBook000" || bookFileName=="UserBook00") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
 					t.gameObject.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
 					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{modalDeleteBook(bookFileName);});
 					if (!editorMode) t.gameObject.SetActive(false);
@@ -735,7 +758,7 @@ public class GUILogic : MonoBehaviour {
 		//SaveManager saveManager = new SaveManager();
 		Debug.Log("verifying book not empty");
 		if (screenBook.pages.Count==0) {Debug.LogWarning("<color=red>Book is Empty. Save Cancelled</color>"); return;}
-		List<SinglePage> emptyPages = new List<SinglePage>();
+//		List<SinglePage> emptyPages = new List<SinglePage>();
 		foreach (SinglePage page in screenBook.pages){
 			if (page.texture==null) {
 				Debug.Log("page has no texture - adding to bad list");
@@ -901,14 +924,26 @@ public class GUILogic : MonoBehaviour {
 			int i;
 			if (Int32.TryParse (lastThreeDigits, out i)) {
 				//if nothing went wrong and integer is fine
-				Debug.Log ("integer form filename is OK. value = " + i);
+				Debug.Log ("integer from ("+ lastThreeDigits    +") is OK. value = " + i);
 				if (i > highestNumber) {
 					Debug.Log ("higher number found: " + i);
 					highestNumber = i;
 				}
 			} else {
-				//integer form string failed
-				Debug.Log ("PARSE error: interger from fileName string failed.");
+				//integer from threeDigits string failed
+				Debug.Log ("threeDigits PARSE error: (" + lastThreeDigits + ") interger from fileName string failed.");
+				string lastTwoDigits = lastThreeDigits.Substring (lastThreeDigits.Length - 2);
+				if (Int32.TryParse (lastTwoDigits, out i)) {
+					//if nothing went wrong and integer is fine
+					Debug.Log ("integer from filename is OK. value = " + i);
+					if (i > highestNumber) {
+						Debug.Log ("higher number found: " + i);
+						highestNumber = i;
+					}
+				} else { // TwoDigitis int form string failed
+					Debug.Log ("lastTwoDigits PARSE error: (" + lastTwoDigits + ") interger from fileName string failed.");
+
+				}
 			}
 		}
 		highestNumber++;
@@ -917,6 +952,7 @@ public class GUILogic : MonoBehaviour {
 	}
 	public void createNewBook(){
 		// currentBook should be newBookPrefab
+		creatingNewBook=true;
 		GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
 		Debug.Log ("screenbook tag: " + screenBook.tag);
 		Destroy(screenBook.gameObject);
