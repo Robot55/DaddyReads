@@ -44,14 +44,6 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log("<<< Awake method started >>>");
 		savemanager = this.gameObject.AddComponent<SaveManager>();
 	}
-
-	IEnumerator Example()
-	{
-		print(Time.time);
-		yield return new WaitForSeconds(5);
-		print(Time.time);
-		//StartCoroutine(Example());
-	}
 		
 	void Start () {
 		Debug.Log("<< GUILogic: Start(): Started");
@@ -114,7 +106,6 @@ public class GUILogic : MonoBehaviour {
 					} else { // if page texture no longer null
 					nextPageButton.SetActive(true);
 					nextPageButton.GetComponent<Button>().image.sprite=nextPageButtonTextureAddPage;
-
 					}
 				} else { //if this is not the last page
 					nextPageButton.SetActive(true);
@@ -356,9 +347,14 @@ public class GUILogic : MonoBehaviour {
 		Quaternion newRotation = daddyButton.image.transform.rotation;
 		newRotation.z= newRotation.z==0 ? 180 : 0;
 		daddyButton.image.transform.rotation = newRotation;
+		//Flip Kid mode background visibility
 		kidModeBackground.SetActive(!kidModeBackground.activeInHierarchy);
+		//Flip daddy mode background visibility
 		daddyModeBackground.SetActive(!daddyModeBackground.activeInHierarchy);
-		//Start();
+		//Rebuild BookFile Buttons
+		if (mainCanvas.currentScreen==mainCanvas.homeScreen){
+			createBookButtonList();
+		}
 	}
 
 	public void daddyButtonLocked(){
@@ -422,7 +418,7 @@ public class GUILogic : MonoBehaviour {
 				loadInBackground = true;
 				StartCoroutine (singlePageLoadCR (pageIndex + 1));
 			} else {
-				print ("this page is already - but some unloaded pages still exist");
+				Debug.Log ("this page is already - but some unloaded pages still exist");
 			}
 		}
 	}
@@ -466,18 +462,35 @@ public class GUILogic : MonoBehaviour {
 		if (onScreenMessageContainer.GetComponentsInChildren<Text>().Length>0) return;
 		GameObject go=Instantiate(onScreenMessageTextPrefab, onScreenMessageContainer.transform.position, onScreenMessageContainer.transform.rotation, onScreenMessageContainer.transform);
 	}*/	
+	GameObject findBookFileButton (string fileName){
+		foreach (Transform child in fileListContainer.transform) {
+			foreach (Text text in child.GetComponentsInChildren<Text>()) {
+				if (text.transform.parent.name == "fileNameButton") {
+					Debug.Log ("found the correct text object!");
+					if (text.text == fileName) {
+						Debug.Log ("found matching object text");
+						return child.gameObject;
+					}
+				}
+			}
+		}
+		Debug.Log ("GameObject not found for: " + fileName + ". returning Null");
+		return null;
+	}
+
 	public void deleteSavedBook(string _name){
-		Debug.Log("<<< deleteSavedBook Func started >>>");
+		Debug.Log("<<< deleteSavedBook : Started :");
 		Debug.Log("Trying to DELETE book file: " + _name);
 		string filePath = _name + "/";
-		if (!ES2.Exists(filePath)){
+		if (!ES2.Exists(filePath)){ //Handle error file not found
 			Debug.LogWarning ("File: " + filePath + " can't be found");
-		} else {
+		} else { //if no errors
 			ES2.Delete(filePath);
 			Debug.Log("File: " + _name + " deleted");
-			Debug.Log("Refreshing by running Start()");
-			Start();
-
+			// Find the GUI object for this file and destroy it.
+			Destroy (findBookFileButton (_name));
+			// update the AllPlayerFiles list
+			getBookFiles();
 		}
 	}
 	public void modalDeleteBook(string _name){
@@ -558,7 +571,7 @@ public class GUILogic : MonoBehaviour {
 
 	IEnumerator destroyNestedChildrenCR (Transform parent){
 		foreach (Transform child in parent) {
-			print ("destroying object: " + child.gameObject.name);
+			Debug.Log ("destroying object: " + child.gameObject.name);
 			Destroy (child.gameObject);
 		}
 		yield return null;
@@ -566,6 +579,8 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	IEnumerator createBookButtonListCR(){
+		float tt = Time.realtimeSinceStartup;
+		Debug.Log ("<<< createBookButtonListCR : Coroutine Started at :" + (Time.realtimeSinceStartup - tt));
 		loadingAnimationPanel.SetActive (true);
 
 		Debug.Log ("allPlayerFiles: " + allPlayerFiles.Count.ToString ());
@@ -575,14 +590,14 @@ public class GUILogic : MonoBehaviour {
 		}
 		//delete all buttons (so you can "redraw" this every time w/o multiple buttons)
 		foreach (Transform child in fileListContainer.transform) {
-			print ("destroying object: " + child.gameObject.name);
+			Debug.Log ("destroying object: " + child.gameObject.name);
 			Destroy (child.gameObject);
 		}
 		foreach (string bookFileName in allPlayerFiles)
 		{	
 			GameObject go;
 			go = Instantiate (fileNameButtonPrefab, fileListContainer.transform.position, fileListContainer.transform.rotation, fileListContainer.transform);
-			print ("instantiated new object: " + go.name);
+			Debug.Log ("instantiated new object: " + go.name);
 			foreach (Transform t in go.transform){
 				Debug.Log ("now looping on: " + t.name);
 				Debug.Log ((t!=null) ? t.name + "is NOT null. parent is: " + t.parent.name: ">>>>>>>>> " +t.name + "WARNING: is NULL. parent is: " + t.parent.name);
@@ -594,8 +609,9 @@ public class GUILogic : MonoBehaviour {
 
 					string imagePath = Application.persistentDataPath + "/" + bookFileName + "/" + "Page_000" + "/pagePhoto.png";
 					WWW txLoader = new WWW ("file://" + imagePath);
-
+					Debug.Log ("createBookButtonListCR : yielding for txLoader @" + (Time.realtimeSinceStartup - tt));
 					yield return txLoader;
+					Debug.Log ("createBookButtonListCR : resuming from txLoader yield  @" + (Time.realtimeSinceStartup - tt));
 
 					// error handling
 					if (!string.IsNullOrEmpty (txLoader.error)) {
@@ -621,7 +637,7 @@ public class GUILogic : MonoBehaviour {
 				if(t.gameObject.name.Contains("DeleteButton_Containter")){
 					Debug.Log("DeleteButton container found: " + t.name + " / " + t.gameObject.name);
 					t.gameObject.SetActive (true);
-					//if(bookFileName=="UserBook000") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
+					if(bookFileName=="UserBook000") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
 					t.gameObject.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
 					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{modalDeleteBook(bookFileName);});
 					if (!editorMode) t.gameObject.SetActive(false);
@@ -911,14 +927,12 @@ public class GUILogic : MonoBehaviour {
 		screenBook = newBook.GetComponent<Book>();
 		screenBook.tag = "BOOK";
 		Debug.Log ("screenbook tag: " + screenBook.tag);
-		// set filename to FileInfo.count+1
-		Debug.Log(generateNewBookFileName());
+		// set filename to new file
 		currentBookFileName = generateNewBookFileName ();
-		//currentBookFileName = allPlayerFiles[allPlayerFiles.Count-1] != "UserBook"+allPlayerFiles.Count.ToString("000") ? "UserBook"+allPlayerFiles.Count.ToString("000") : "UserBook"+allPlayerFiles.Count+1.ToString("000");
-		// save
+		//change to editor mode BEFORE toggling editorMode boolean
+		mainCanvas.changeScreen(mainCanvas.editorScreen);
 		if (!editorMode) toggleEditMode();
 		//save();
-		mainCanvas.changeScreen(mainCanvas.editorScreen);
 	}
 // ###### SECTION END: UTILITY FUNCTIONS ##########
 }
