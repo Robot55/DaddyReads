@@ -2505,7 +2505,7 @@ MonoBehaviour:
   loadingAnimationPanel: {fileID: 2041384350}
   pageIndex: 0
   kidProofRiddleValue: 99
-  demoBookUpdateFilename: updateDemoBook002.txt
+  demoBookUpdateFilename: updateDemoBook003.txt
   mobilePhotoResolution: 0.5
   pageAudioPlayed: 0
   editorMode: 0

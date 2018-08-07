@@ -44,6 +44,12 @@ public class GUILogic : MonoBehaviour {
 			//Do a complete save of current screenBook to demoBook File
 			currentBookFileName = "UserBook000";
 			completeBookSave ();
+			//delete legacy demoBook user if exists
+			if (ES3.DirectoryExists ("UserBook00")){
+				Debug.Log ("Legacy book exists - deleteing");
+				deleteSavedBook ("UserBook00");
+			}
+			//create updateFile on disk so it doesn't run again
 			ES2.Save ("123", fileToCheck);
 
 		} else {
