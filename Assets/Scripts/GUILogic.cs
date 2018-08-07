@@ -54,7 +54,7 @@ public class GUILogic : MonoBehaviour {
 	}
 		
 	void Start () {
-		Debug.Log("<< GUILogic: Start(): Started >>");
+		Debug.Log("<< GUILogic: Start(): Started");
 		loadingAnimationPanel.SetActive (true);
 		Debug.Log("current pageIndex is: " + pageIndex + ". resetting to 0");
 		pageIndex = 0;
@@ -95,7 +95,7 @@ public class GUILogic : MonoBehaviour {
 		Sprite tmpSprite;
 		Texture2D tex;
 		if(screenBook.pages[pageIndex].texture==null){
-			Debug.LogWarning("page doesn't have texture. showing PlaceHolder");
+			Debug.LogWarning("page ("+ pageIndex +") doesn't have texture. showing PlaceHolder");
 			tex=newPageTexture;
 		} else{
 
@@ -277,19 +277,21 @@ public class GUILogic : MonoBehaviour {
 		Debug.Log(newTexture!=null ? "Texture = " + newTexture : "Texture is Null");
 
 		//Error Handling
-		if (reason == ePickImageFinishReason.SELECTED){ // If all is OK do stuff
+		if (reason == ePickImageFinishReason.SELECTED) { // If all is OK do stuff
 			Debug.Log ("SUCCESS: PickImageFinished returned SELECTED. newTexture is: " + newTexture);
-			screenBook.pages[pageIndex].texture = newTexture;
+			screenBook.pages [pageIndex].texture = newTexture;
 			Debug.Log ("saving photo to device");
 			savemanager.savePageImage (screenBook.pages [pageIndex].texture, currentBookFileName, pageIndex, "");
-		}
-		if (reason == ePickImageFinishReason.CANCELLED){ // If user cancelled get image photo
-			Debug.Log ("USER CANCELLED: PickImageFinished returned CANCELLED. newTexture is: " + newTexture);
-			Debug.Log ("Doing nothing");
-		}
-		if (reason == ePickImageFinishReason.FAILED){ // If user cancelled get image photo
-			Debug.Log ("FAILIURE: PickImageFinished returned FAILED. newTexture is: " + newTexture!=null ? newTexture.ToString() : "Null");
-			Debug.Log ("Doing nothing");
+		} else {
+			if (reason == ePickImageFinishReason.CANCELLED) { // If user cancelled get image photo
+				Debug.Log ("USER CANCELLED: PickImageFinished returned CANCELLED. ScreenBook texture is: " + screenBook.pages [pageIndex].texture);
+				Debug.Log ("Doing nothing");
+			} else {
+				if (reason == ePickImageFinishReason.FAILED) { // If user cancelled get image photo
+					Debug.Log ("FAILIURE: PickImageFinished returned FAILED. newTexture is: " + newTexture != null ? newTexture.ToString () : "Null");
+					Debug.Log ("Doing nothing");
+				}
+			}
 		}
 
 
@@ -356,7 +358,7 @@ public class GUILogic : MonoBehaviour {
 		daddyButton.image.transform.rotation = newRotation;
 		kidModeBackground.SetActive(!kidModeBackground.activeInHierarchy);
 		daddyModeBackground.SetActive(!daddyModeBackground.activeInHierarchy);
-		Start();
+		//Start();
 	}
 
 	public void daddyButtonLocked(){
@@ -574,18 +576,20 @@ public class GUILogic : MonoBehaviour {
 		//delete all buttons (so you can "redraw" this every time w/o multiple buttons)
 		foreach (Transform child in fileListContainer.transform) {
 			print ("destroying object: " + child.gameObject.name);
-			if(child.transform.gameObject.name.Contains("FileNameButtonWrapper")) Destroy (child.gameObject);
+			Destroy (child.gameObject);
 		}
-
 		foreach (string bookFileName in allPlayerFiles)
 		{	
 			GameObject go;
 			go = Instantiate (fileNameButtonPrefab, fileListContainer.transform.position, fileListContainer.transform.rotation, fileListContainer.transform);
 			print ("instantiated new object: " + go.name);
 			foreach (Transform t in go.transform){
+				Debug.Log ("now looping on: " + t.name);
+				Debug.Log ((t!=null) ? t.name + "is NOT null. parent is: " + t.parent.name: ">>>>>>>>> " +t.name + "WARNING: is NULL. parent is: " + t.parent.name);
+
 				if(t.gameObject.name.Contains("fileNameButton")){
 
-					Debug.Log("Found the Big fileNameButton");
+					Debug.Log("fileNameButton found. setting its <Text> to: " + bookFileName);
 					t.gameObject.GetComponentInChildren<Text>().text = bookFileName;
 
 					string imagePath = Application.persistentDataPath + "/" + bookFileName + "/" + "Page_000" + "/pagePhoto.png";
@@ -596,13 +600,13 @@ public class GUILogic : MonoBehaviour {
 					// error handling
 					if (!string.IsNullOrEmpty (txLoader.error)) {
 						// handle error
-						Debug.LogWarning ("some error loading texture: " + txLoader.error.ToString());
+						Debug.LogWarning ("some error loading the book cover texture: " + txLoader.error);
 					}
 
 					Texture2D tex=txLoader.texture;
 					Sprite tmpSprite = null;
 					tmpSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
-					Debug.Log ((t!=null) ? "if(transform) reutrns not null" : "if(transform) reutrns null");
+					Debug.Log ((t!=null) ? "if(transform) reutrns not null. parent is: " + t.parent.name : ">>>>>>>>>> WARNING: if(transform) reutrns null. parent is: " + t.parent.name);
 					//Debug.Log (" BUGHUNT: t. gameobject: " + t.gameObject!=null ? t.gameObject.name : "is null. and tmpSprite: " + tmpSprite!=null ? tmpSprite.name : "is null");
 					t.gameObject.GetComponent<Image>().sprite=tmpSprite;
 					t.gameObject.GetComponent<Button>().onClick.RemoveAllListeners();
@@ -615,9 +619,9 @@ public class GUILogic : MonoBehaviour {
 
 				}
 				if(t.gameObject.name.Contains("DeleteButton_Containter")){
-					Debug.Log("Found the DeleteButton container");
+					Debug.Log("DeleteButton container found: " + t.name + " / " + t.gameObject.name);
 					t.gameObject.SetActive (true);
-					if(bookFileName=="UserBook000") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
+					//if(bookFileName=="UserBook000") {t.gameObject.SetActive(false);}; //if this is demo book hide delete option
 					t.gameObject.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
 					t.gameObject.GetComponentInChildren<Button>().onClick.AddListener(delegate{modalDeleteBook(bookFileName);});
 					if (!editorMode) t.gameObject.SetActive(false);
@@ -642,9 +646,9 @@ public class GUILogic : MonoBehaviour {
 		StartCoroutine(loadAndPlayBookCR(go));
 	}
 	IEnumerator loadAndEditBookCR (GameObject go) {
-		Debug.Log("<<< loadAnPlayBook func started >>>");
-		Debug.Log("gameObject is: " + go.name);
-		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+		Debug.Log("<<< loadAndEditBookCR : Coroutine started:");
+		Debug.Log("Text gameObject is: " + go.name);
+		Debug.Log("found text: " + go.GetComponentInChildren<Text>().text);
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
 		//call load()
@@ -654,9 +658,9 @@ public class GUILogic : MonoBehaviour {
 		mainCanvas.changeScreen(mainCanvas.editorScreen);
 	}
 	IEnumerator loadAndPlayBookCR (GameObject go) {
-		Debug.Log("<<< loadAnPlayBook func started >>>");
-		Debug.Log("gameObject is: " + go.name);
-		Debug.Log("Button text: " + go.GetComponentInChildren<Text>().text);
+		Debug.Log("<<< loadAnPlayBookCR Coroutine started >>>");
+		Debug.Log(" Text gameObject is: " + go.name);
+		Debug.Log("found text: " + go.GetComponentInChildren<Text>().text);
 		//set global filename for load/save
 		currentBookFileName = go.GetComponentInChildren<Text>().text;
 		//call load()
@@ -714,7 +718,7 @@ public class GUILogic : MonoBehaviour {
 	}
 
 	public void completeBookSave(){
-		Debug.Log("<< Save Method Began >>");
+		Debug.Log("<< completeBookSave : Started : >>");
 		//SaveManager saveManager = new SaveManager();
 		Debug.Log("verifying book not empty");
 		if (screenBook.pages.Count==0) {Debug.LogWarning("<color=red>Book is Empty. Save Cancelled</color>"); return;}
@@ -722,51 +726,41 @@ public class GUILogic : MonoBehaviour {
 		foreach (SinglePage page in screenBook.pages){
 			if (page.texture==null) {
 				Debug.Log("page has no texture - adding to bad list");
-				emptyPages.Add(page);
+				screenBook.pages.Remove(page);
 				}
 		}
-		foreach (SinglePage page in emptyPages){
-			Debug.Log("page has no texture - removing it. texture= " +page.texture);
-			screenBook.pages.Remove(page);
-			//pageIndex= pageIndex>0 ? pageIndex-- : 0 ;
-		}
+//		foreach (SinglePage page in screenBook.pages){
+//			if (page.texture==null) {
+//				Debug.Log("page has no texture - adding to bad list");
+//				emptyPages.Add(page);
+//			}
+//		}
+//		foreach (SinglePage page in emptyPages){
+//			Debug.Log("page has no texture - removing it. texture= " +page.texture);
+//			screenBook.pages.Remove(page);
+//			//pageIndex= pageIndex>0 ? pageIndex-- : 0 ;
+//		}
 		if (screenBook.pages.Count==0) {Debug.LogWarning("<color=red>Book is Empty. Save Cancelled</color>"); return;}
 		if (screenBook.pages.Count==0) Debug.LogError("You should NEVER see this line!");
 		Debug.Log("Book not Empty. has: "+ screenBook.pages.Count.ToString());
-//		string currentFolderName = currentBookFileName;
-//		if (!Directory.Exists(Application.persistentDataPath + "/" + currentFolderName)){
-//			Directory.CreateDirectory(Application.persistentDataPath + "/" + currentFolderName);
-//		}
 
-
-		//SaveManager.createFolder(currentBookFileName, "result");
-		
-		/*BinaryFormatter bf = new BinaryFormatter ();
-		FileStream file = File.Create (Application.persistentDataPath + "/" + currentBookFileName+".dat");
-		BookData bookdata = new BookData ();*/
 		int stash = pageIndex;
 		pageIndex = 0;
 		foreach (SinglePage page in screenBook.pages){
+			Debug.Log ("saving Loop: pageIndex : " + pageIndex + ". stash: " + stash);
 			savemanager.savePageImage (page.texture, currentBookFileName, pageIndex, "result");
-			//	PageData data = new PageData();
-			// check if audio.clip exist
-			//if (page.texture==null) {Debug.LogWarning("no photo for this page. skipping page"); return;}
 			if (page.clip != null) {
 				savemanager.savePageAudio (page.clip, currentBookFileName, pageIndex, "result");
-				//seralizeAudio (page.clip, out data.soundData, out data.clipName, out data.samples, out data.channels, out data.freq);
-			//	Debug.Log ("Serialized AudioClip");
 			} else {
 				Debug.LogWarning ("No audio for page. Probably not recorded by user. saving anyway");
 			}
-			//Debug.Log("page texture is: " + page.texture);
-			//data.photoData = page.texture.EncodeToPNG()!=null ? page.texture.EncodeToPNG() : page.texture.EncodeToJPG();
-			//bookdata._pages.Add(data);
+
 			pageIndex++;
+
 		}
 		pageIndex = stash;
-		//bookdata.bookTitlePhotoData = bookdata._pages[0].photoData;
-		//bf.Serialize (file, bookdata);
-		//file.Close ();
+		Debug.Log ("saving Loop ended: pageIndex : " + pageIndex + ". stash: " + stash);
+
 		//SavWav.Save("myweirdfile.wav", screenBook.pages[0].clip);
 		Debug.Log ("file saved: " + currentBookFileName);
 		Debug.Log ("<color=green>## Save Method completed ##</color>");
@@ -905,14 +899,18 @@ public class GUILogic : MonoBehaviour {
 			}
 		}
 		highestNumber++;
+		Debug.Log ("setting new book number to: " + highestNumber);
 		return "UserBook"+highestNumber.ToString("000");
 	}
 	public void createNewBook(){
 		// currentBook should be newBookPrefab
 		GameObject newBook= Instantiate(newBookPrefab,this.transform.position,this.transform.rotation,this.transform);
+		Debug.Log ("screenbook tag: " + screenBook.tag);
 		Destroy(screenBook.gameObject);
 		pageIndex = 0;
 		screenBook = newBook.GetComponent<Book>();
+		screenBook.tag = "BOOK";
+		Debug.Log ("screenbook tag: " + screenBook.tag);
 		// set filename to FileInfo.count+1
 		Debug.Log(generateNewBookFileName());
 		currentBookFileName = generateNewBookFileName ();
