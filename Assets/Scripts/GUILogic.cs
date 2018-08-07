@@ -351,7 +351,7 @@ public class GUILogic : MonoBehaviour {
 		kidModeBackground.SetActive(!kidModeBackground.activeInHierarchy);
 		//Flip daddy mode background visibility
 		daddyModeBackground.SetActive(!daddyModeBackground.activeInHierarchy);
-		//Rebuild BookFile Buttons
+		//Rebuild BookFile Buttons if this is the homeScreen
 		if (mainCanvas.currentScreen==mainCanvas.homeScreen){
 			createBookButtonList();
 		}
@@ -374,9 +374,6 @@ public class GUILogic : MonoBehaviour {
 		if (pageIndex < screenBook.pages.Count - 1) {
 				pageIndex++;
 				initPageDisplay();
-				
-				
-				
 				//texture = screenBook.pages [pageIndex].texture;
 			} else { //add another page if in EDITOR mode
 				if (mainCanvas.currentScreen==mainCanvas.editorScreen){
@@ -423,15 +420,14 @@ public class GUILogic : MonoBehaviour {
 		}
 	}
 	void initPageDisplay(){
+		//initialize audio
 		if(tmpAudio.isPlaying) tmpAudio.Stop(); // stop any currently playing tmpAudio
 		if(screenBook.curAudio.isPlaying) screenBook.curAudio.Stop(); // stop any currently playing curAudio
 		stopPlayback();
 		stopPageAudio();
 		pageAudioPlayed=false; // reset pageAudioPlayed bool state for auto play feature
 		setAutoPlayAudioState(); // run se autoPlay audio state method
-			
-
-
+		// if in player od editor
 		if (mainCanvas.currentScreen!=mainCanvas.homeScreen){
 			setSmartLoaderState (pageIndex);
 			drawSprite();
@@ -441,6 +437,7 @@ public class GUILogic : MonoBehaviour {
 			setPrevPageButton();
 			}
 	}
+
 	public void recordAudioStop(){
 		EndRecording (tmpAudio, null);
 		if (tmpAudio.clip!=null){
