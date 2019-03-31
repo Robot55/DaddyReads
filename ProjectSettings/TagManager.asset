@@ -10,6 +10,7 @@ TagManager:
   - mainCanvas
   - fileBookContainer
   - DemoBook
+  - SFX
   layers:
   - Default
   - TransparentFX

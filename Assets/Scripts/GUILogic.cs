@@ -17,8 +17,10 @@ public class GUILogic : MonoBehaviour {
 	public Button recAudioButton, playButton, attachAudioToPageButton, playButtonOnImage, daddyButton, takePhotoButton;
 	public string currentBookFileName = "UserBook";
 	List<string> allPlayerFiles = new List<string>();
+	public List<AudioClip> guiSoundFX = new List<AudioClip> ();
 	public int currentBookTotalPages;
 	public AudioSource tmpAudio ;
+	private AudioSource sfx;
 	public Book screenBook;
 	public Sprite playBtnSprite, stopBtnSprite;
 	public Image bookPageDisplayImage;
@@ -27,10 +29,11 @@ public class GUILogic : MonoBehaviour {
 	public Sprite nextPageButtonTextureNormal, nextPageButtonTextureAddPage;
 	public GameObject fileNameButtonPrefab, fileListContainer, newBookPrefab, nextPageButton, prevPageButton, modalWindow;
 	public GameObject onScreenMessageTextInScene, onScreenMessageContainer, kidModeBackground, daddyModeBackground;
-	public GameObject photoButtonContainer, recAudioButtonContainer, keypadInputText, kidProofRiddle, loadingAnimationPanel;
+	public GameObject photoButtonContainer, recAudioButtonContainer, keypadInputText, kidProofRiddle, loadingAnimationPanel, createNewBookContainer;
 	public int pageIndex = 0;
 	public int kidProofRiddleValue = 99;
 	public string demoBookUpdateFilename;
+
 
 	public float mobilePhotoResolution; // set in inspector
 
@@ -63,6 +66,11 @@ public class GUILogic : MonoBehaviour {
 	void Awake(){
 		Debug.Log("<<< Awake method started >>>");
 		savemanager = this.gameObject.AddComponent<SaveManager>();
+		Debug.Log ("finding SFX audioSource. before: " + sfx);
+		sfx = GameObject.FindWithTag ("SFX").GetComponent<AudioSource> ();
+		sfx.clip = guiSoundFX [0];
+		Debug.Log ("finding SFX audioSource. after: " + sfx);
+
 	}
 		
 	void Start () {
@@ -159,7 +167,7 @@ public class GUILogic : MonoBehaviour {
 
 	void setTakePhotoButtonState(){
 		if (mainCanvas.currentScreen==mainCanvas.playerScreen) return;
-		
+		addClickSoundToButton (photoButtonContainer.GetComponentInChildren<Button>(), guiSoundFX [0]);
 		ColorBlock cb;
 		cb=takePhotoButton.colors;
 		Color transparentWhite= Color.white;
@@ -198,6 +206,7 @@ public class GUILogic : MonoBehaviour {
 			//button should function as "end recording button"
 			recAudioButtonContainer.GetComponentInChildren<Text>().text="End Recording";
 			recAudioButton.onClick.RemoveAllListeners();
+			addClickSoundToButton (recAudioButton, guiSoundFX [0]);
 			recAudioButton.onClick.AddListener(recordAudioStop);
 			//set normal color to RED
 			cb.normalColor=Color.red;
@@ -205,6 +214,7 @@ public class GUILogic : MonoBehaviour {
 			// button should function as "start recording"
 			recAudioButtonContainer.GetComponentInChildren<Text>().text=screenBook.pages[pageIndex].clip==null? "Narrate this page" : "Re-Record Narration";
 			recAudioButton.onClick.RemoveAllListeners();
+			//addClickSoundToButton (recAudioButton, guiSoundFX [0]);
 			recAudioButton.onClick.AddListener(recordAudio);
 			//set normal color to RED or HalfTransparentWHITE
 			Color transparentWhite = Color.white;
@@ -222,10 +232,12 @@ public class GUILogic : MonoBehaviour {
 				// If yes - button should be a STOP playback button
 				//playButton.GetComponentInChildren<Text>().text = "Stop";
 				playButton.onClick.RemoveAllListeners();
+				addClickSoundToButton (playButton, guiSoundFX [0]);
 				playButton.onClick.AddListener(stopPlayback);
 			} else { // If No - make Play button
 				//playButton.GetComponentInChildren<Text>().text = "Play";
 				playButton.onClick.RemoveAllListeners();
+				addClickSoundToButton (playButton, guiSoundFX [0]);
 				playButton.onClick.AddListener(playPlayback);
 			}
 		} else { // if no playable clip exists
@@ -263,10 +275,12 @@ public class GUILogic : MonoBehaviour {
 				// If yes - make a Stop Button
 				playButtonOnImage.image.sprite=stopBtnSprite;	
 				playButtonOnImage.onClick.RemoveAllListeners();
+				addClickSoundToButton (playButtonOnImage, guiSoundFX [0]);
 				playButtonOnImage.onClick.AddListener(stopPageAudio);
 			} else { // auio currently NOT playing - make a play button
 				playButtonOnImage.image.sprite=playBtnSprite;	
 				playButtonOnImage.onClick.RemoveAllListeners();
+				addClickSoundToButton (playButtonOnImage, guiSoundFX [0]);
 				playButtonOnImage.onClick.AddListener(playPageAudio);
 			}
 		} else{ //if no audio clip for this page - don't display button at all
@@ -372,6 +386,8 @@ public class GUILogic : MonoBehaviour {
 		Quaternion newRotation = daddyButton.image.transform.rotation;
 		newRotation.z= newRotation.z==0 ? 180 : 0;
 		daddyButton.image.transform.rotation = newRotation;
+		//Flip createNewBook visibility
+		createNewBookContainer.SetActive(editorMode ? true : false);
 		//Flip Kid mode background visibility
 		kidModeBackground.SetActive(!kidModeBackground.activeInHierarchy);
 		//Flip daddy mode background visibility
@@ -423,6 +439,11 @@ public class GUILogic : MonoBehaviour {
 		setNextPageButton ();
 	}
 
+	void addClickSoundToButton (Button button, AudioClip clip){
+
+//		delegate{this.SendMessage(yesButtonMethodName, yesButtonMethodParameter);}
+		button.onClick.AddListener(delegate {sfx.PlayOneShot(clip);});
+	}
 	void setSmartLoaderState(int pageIndex){
 		if (creatingNewBook)
 			return;
@@ -449,8 +470,8 @@ public class GUILogic : MonoBehaviour {
 	}
 	void initPageDisplay(){
 		//initialize audio
-		if(tmpAudio.isPlaying) tmpAudio.Stop(); // stop any currently playing tmpAudio
-		if(screenBook.curAudio.isPlaying) screenBook.curAudio.Stop(); // stop any currently playing curAudio
+		//if(tmpAudio.isPlaying) tmpAudio.Stop(); // stop any currently playing tmpAudio
+		//if(screenBook.curAudio.isPlaying) screenBook.curAudio.Stop(); // stop any currently playing curAudio
 		stopPlayback();
 		stopPageAudio();
 		pageAudioPlayed=false; // reset pageAudioPlayed bool state for auto play feature
@@ -471,22 +492,27 @@ public class GUILogic : MonoBehaviour {
 		if (tmpAudio.clip!=null){
 			//Debug.Log("<color=green>Do something when tempClip stopped recording and exists!</color>");
 			attachCurrentRecording();
-			savemanager.savePageAudio (screenBook.pages[pageIndex].clip, currentBookFileName, pageIndex, "");
-			
+			savemanager.savePageAudio (screenBook.pages[pageIndex].clip, currentBookFileName, pageIndex, "");		
 		}
 	}
+
+	void recordAudioDelayed(){
+		Invoke ("recordAudioRAW", sfx.clip.length);
+	}
 	public void recordAudio(){
+		//recordAudioDelayed ();
+		recordAudioRAW();
+	}
+
+	public void recordAudioRAW(){
 		tmpAudio.clip = Microphone.Start (null, false, 60, 44100);
 	}
+	
 	void AttachRecording (AudioClip recordedClip, int i) {
 		
 		screenBook.pages [i].clip = recordedClip; // Attaches Recording to specific texture/Photo
 	}
 
-	/*public void daddyButtonClicked(){
-		if (onScreenMessageContainer.GetComponentsInChildren<Text>().Length>0) return;
-		GameObject go=Instantiate(onScreenMessageTextPrefab, onScreenMessageContainer.transform.position, onScreenMessageContainer.transform.rotation, onScreenMessageContainer.transform);
-	}*/	
 	GameObject findBookFileButton (string fileName){
 		foreach (Transform child in fileListContainer.transform) {
 			foreach (Text text in child.GetComponentsInChildren<Text>()) {
